@@ -24,3 +24,5 @@
 *.jpeg
 *.tga
 *.psd
+# Unity / Android build temporary files
+.utmp/
