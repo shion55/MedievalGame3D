@@ -164,10 +164,19 @@ public class Farmer : JobBase
             }
             else 
             {
-                if(VB.farmmanager.FarmBuilding__FarmBlocks[myJobBuilding].Count > 0)
+                if (VB.farmmanager.FarmBuilding__FarmBlocks[myJobBuilding].Count > 0)
                 {
                     farmBlocks.Clear();
                     farmBlocks.AddRange(VB.farmmanager.FarmBuilding__FarmBlocks[myJobBuilding]);
+
+                    IsGoFarm = true;
+
+                    farmRemainBlocks.Clear();
+                    farmRemainBlocks.AddRange(farmBlocks);
+
+                    GameObject nearestfarm = VB.FindNearestObj(farmBlocks);
+                    VB.DepartToTarget(nearestfarm, VillagerBase.GoState.GoObject);
+
                     yield break;
                 }
             }

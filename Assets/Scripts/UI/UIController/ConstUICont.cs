@@ -292,7 +292,7 @@ public class ConstUICont : MonoBehaviour
     public void SiteGenModeStart(ConstBuildingType type)//ŠŽ‹à
     {
         int NeedMoney = constbuildingmaster.GetData(type).GetMaterialDict()[MaterialType.Money];
-        if (UC.moneyManager.HavingMoney > NeedMoney)
+        if (UC.moneyManager.HavingMoney >= NeedMoney)
         {
            
             UC.moneyManager.HavingMoneyUpdate(-NeedMoney);

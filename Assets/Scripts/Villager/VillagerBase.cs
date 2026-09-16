@@ -2,6 +2,7 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -181,18 +182,19 @@ public class VillagerBase : MonoBehaviour
         {
             anim.Play(AnimType.Carry);
         }
-        if (arrcheck != null) StopCoroutine(arrcheck);
+        if (arrcheck == null)
+        {
+            arrcheck = StartCoroutine(ArrCheck(target,state));
+        }
         //入口オブジェクトがあるなら
         Transform targetent = target.transform.Find("Entrance");
         if (targetent != null)
         {
             agent.SetDestination(targetent.transform.position);
-            StartCoroutine(ArrCheck(target,state));
         }
         else
         {
             agent.SetDestination(target.transform.position);
-            StartCoroutine(ArrCheck(target,state));
         }
     }
     
@@ -339,7 +341,7 @@ public class VillagerBase : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("RoadTile"))
+        if (other.CompareTag("Road"))
         {
             triggerCount = Mathf.Max(0, triggerCount - 1);
             if (triggerCount == 0)

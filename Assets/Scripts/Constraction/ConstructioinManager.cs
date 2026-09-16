@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.AI;
 using Unity.AI.Navigation;
 using Unity.Jobs.LowLevel.Unsafe;
-using System.Linq;
 public class ConstructioinManager : MonoBehaviour
 {
     public UIController UIcont;
@@ -69,9 +68,9 @@ public class ConstructioinManager : MonoBehaviour
                 LockedConstJobBuildingTypes.Add(type);
             }
         }
-        LockedConstJobBuildingTypes.Except(ConstableBuildingType);//Å‰‚©‚çŒš’z‚Å‚«‚éŒš•¨‚Í”²‚­
+        LockedConstJobBuildingTypes.RemoveAll(type => ConstableBuildingType.Contains(type));
 
-        foreach(ConstBuildingType type in LockedConstJobBuildingTypes)
+        foreach (ConstBuildingType type in LockedConstJobBuildingTypes)
         {
             Debug.Log(type);
         }
@@ -220,11 +219,15 @@ public class ConstructioinManager : MonoBehaviour
             statusManager.availableJobs.Add(jobtype);
         }
         //«ŽŸ‚É‰ð•ú‚·‚éŒš•¨‚ðavailable‚É“ü‚ê‚é
-        ConstBuildingType nextType = LockedConstJobBuildingTypes[0];
-        if (!ConstableBuildingType.Contains(nextType))
+        if (LockedConstJobBuildingTypes.Count > 0)
         {
-            ConstableBuildingType.Add(nextType);
-            LockedConstJobBuildingTypes.Remove(nextType);
+            ConstBuildingType nextType = LockedConstJobBuildingTypes[0];
+
+            if (!ConstableBuildingType.Contains(nextType))
+            {
+                ConstableBuildingType.Add(nextType);
+                LockedConstJobBuildingTypes.Remove(nextType);
+            }
         }
 
         worldSpaceUIController.GenerateWorldSpaceBuildingUI(constplace, building);

@@ -13,8 +13,7 @@ public class FarmManager : MonoBehaviour
     public void FarmBlockAdd(List<GameObject> blocks)
     {
         Debug.Log(blocks.Count);
-        List<GameObject> AddBlockRemains = new List<GameObject>();
-        AddBlockRemains = blocks;
+        List<GameObject> AddBlockRemains = new List<GameObject>(blocks);
         if (FarmBuildings.Count == 0) {
             WaitingFarms.AddRange(blocks);
         }

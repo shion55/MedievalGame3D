@@ -78,7 +78,7 @@ public class MoneyManager : MonoBehaviour
             coin.transform.rotation = lotate;
             coin.transform.position = startPos;
             coinRender.enabled = false;
-            HavingMoneyUpdate(-taxamount);
+            HavingMoneyUpdate(taxamount);
          
         });
 
