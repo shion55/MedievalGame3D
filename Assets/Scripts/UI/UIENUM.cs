@@ -1,0 +1,15 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public enum UIENUM
+{
+    //UIÇä«óùÇ∑ÇÈENUM
+    House,
+    Building,
+    Wallet,
+    VillagerJob,
+    Information,
+    Constraction,
+    Castle
+}

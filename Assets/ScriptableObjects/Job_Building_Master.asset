@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1ac9f253d6ae4f42b54f5f85870d48b, type: 3}
+  m_Name: Job_Building_Master
+  m_EditorClassIdentifier: 
+  jobBuildingList:
+  - jobType: 0
+    jobSprite: {fileID: 21300000, guid: 41c7a2b1c0fa4cb478b62f64cbc83b64, type: 3}
+    jobClothColor: {r: 0.20536669, g: 0.6698113, b: 0.2521899, a: 1}
+    buildingType: 0
+    buildingSprite: {fileID: 0}
+    requiredMaterials: 
+    producedMaterials: 
+    defaultWorkerLimit: 1
+  - jobType: 1
+    jobSprite: {fileID: 21300000, guid: 02e369a52b2c2394ba89a777d6577fd8, type: 3}
+    jobClothColor: {r: 0.509434, g: 0.045656808, b: 0.045656808, a: 1}
+    buildingType: 1
+    buildingSprite: {fileID: 21300000, guid: 91866d4097d0f98488d57c75dc02932f, type: 3}
+    requiredMaterials: 
+    producedMaterials: 00000000
+    defaultWorkerLimit: 1
+  - jobType: 2
+    jobSprite: {fileID: 21300000, guid: 7bb36429e52a3f94a801ea849d523c2e, type: 3}
+    jobClothColor: {r: 0, g: 0, b: 0, a: 1}
+    buildingType: 0
+    buildingSprite: {fileID: 0}
+    requiredMaterials: 
+    producedMaterials: 
+    defaultWorkerLimit: 1
+  - jobType: 3
+    jobSprite: {fileID: 21300000, guid: d90507edb5797d54e9b6ea86de2b5fec, type: 3}
+    jobClothColor: {r: 1, g: 0.48297825, b: 0.06132078, a: 1}
+    buildingType: 8
+    buildingSprite: {fileID: 0}
+    requiredMaterials: 
+    producedMaterials: 
+    defaultWorkerLimit: 1
+  - jobType: 4
+    jobSprite: {fileID: 21300000, guid: 20966e9d1606071488ec0bb9190cdc2c, type: 3}
+    jobClothColor: {r: 0.6037736, g: 0.07119971, b: 0.07119971, a: 1}
+    buildingType: 2
+    buildingSprite: {fileID: 21300000, guid: 1bf5ced0aafdf104492fb44505c1777f, type: 3}
+    requiredMaterials: 00000000
+    producedMaterials: 02000000
+    defaultWorkerLimit: 1
+  - jobType: 5
+    jobSprite: {fileID: 21300000, guid: 9649bfe2afe220042982a3872cd7d693, type: 3}
+    jobClothColor: {r: 0.08156818, g: 0.4433962, b: 0.16134237, a: 0.9843137}
+    buildingType: 3
+    buildingSprite: {fileID: 21300000, guid: 304ed3c0326472d47920344bbeac54fe, type: 3}
+    requiredMaterials: 
+    producedMaterials: 01000000
+    defaultWorkerLimit: 1
+  - jobType: 6
+    jobSprite: {fileID: 21300000, guid: 10f31664ec1e5d04e9376f6313f9bead, type: 3}
+    jobClothColor: {r: 0.3962264, g: 0.3962264, b: 0.3962264, a: 1}
+    buildingType: 4
+    buildingSprite: {fileID: 21300000, guid: 535b3c96e1e749f4c897c480241b3d35, type: 3}
+    requiredMaterials: 
+    producedMaterials: 04000000
+    defaultWorkerLimit: 1
+  - jobType: 7
+    jobSprite: {fileID: 21300000, guid: 4affaa7fd5d04b142a4454b3fc87eb64, type: 3}
+    jobClothColor: {r: 0.6981132, g: 0.20087217, b: 0.20087217, a: 1}
+    buildingType: 5
+    buildingSprite: {fileID: 21300000, guid: e6a8b0128f0d22840800b2d12bdfafe6, type: 3}
+    requiredMaterials: 
+    producedMaterials: 05000000
+    defaultWorkerLimit: 1
+  - jobType: 8
+    jobSprite: {fileID: 21300000, guid: 6aff4630528589340a2eae51aa97f6c5, type: 3}
+    jobClothColor: {r: 0.08962262, g: 0.19987535, b: 1, a: 1}
+    buildingType: 6
+    buildingSprite: {fileID: 21300000, guid: 5c7b564a9746b3e4da2b730dd2acc136, type: 3}
+    requiredMaterials: 
+    producedMaterials: 06000000
+    defaultWorkerLimit: 1

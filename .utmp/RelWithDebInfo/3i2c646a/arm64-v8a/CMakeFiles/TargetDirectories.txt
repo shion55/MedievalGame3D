@@ -1,0 +1,5 @@
+C:/Users/shion/Desktop/Unity2025/Medieval Game/.utmp/RelWithDebInfo/3i2c646a/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/shion/Desktop/Unity2025/Medieval Game/.utmp/RelWithDebInfo/3i2c646a/arm64-v8a/CMakeFiles/rebuild_cache.dir
+C:/Users/shion/Desktop/Unity2025/Medieval Game/.utmp/RelWithDebInfo/3i2c646a/arm64-v8a/FramePacing/CMakeFiles/swappywrapper.dir
+C:/Users/shion/Desktop/Unity2025/Medieval Game/.utmp/RelWithDebInfo/3i2c646a/arm64-v8a/FramePacing/CMakeFiles/edit_cache.dir
+C:/Users/shion/Desktop/Unity2025/Medieval Game/.utmp/RelWithDebInfo/3i2c646a/arm64-v8a/FramePacing/CMakeFiles/rebuild_cache.dir

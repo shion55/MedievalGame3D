@@ -1,0 +1,109 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb6f7808b25bb714886ea2605e10e1e3, type: 3}
+  m_Name: ConstBuildingMasterData
+  m_EditorClassIdentifier: 
+  conbuildingdata:
+  - conbuildingtype: 0
+    conbuildingSprite: {fileID: 21300000, guid: 9c457de9a093e3d44ad2e855eaa7e159, type: 3}
+    conbuildingPrefab: {fileID: 5046265381819307380, guid: 3ce126509a3e57b4eb6852074fe0f768, type: 3}
+    constcategory: 0
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 250
+  - conbuildingtype: 1
+    conbuildingSprite: {fileID: 21300000, guid: 1bf5ced0aafdf104492fb44505c1777f, type: 3}
+    conbuildingPrefab: {fileID: 746693056798706394, guid: 08906a325641b6b4d96ec74d0e174680, type: 3}
+    constcategory: 1
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 500
+  - conbuildingtype: 3
+    conbuildingSprite: {fileID: 21300000, guid: 535b3c96e1e749f4c897c480241b3d35, type: 3}
+    conbuildingPrefab: {fileID: 6491117342175512502, guid: 16f461ea4228726469accd6311e20b2a, type: 3}
+    constcategory: 1
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 600
+  - conbuildingtype: 4
+    conbuildingSprite: {fileID: 21300000, guid: e6a8b0128f0d22840800b2d12bdfafe6, type: 3}
+    conbuildingPrefab: {fileID: 5314941504940432021, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
+    constcategory: 1
+    requirements:
+    - materialType: 0
+      amount: 3
+    - materialType: 3
+      amount: 700
+    - materialType: 2
+      amount: 5
+    - materialType: 4
+      amount: 5
+  - conbuildingtype: 2
+    conbuildingSprite: {fileID: 21300000, guid: 304ed3c0326472d47920344bbeac54fe, type: 3}
+    conbuildingPrefab: {fileID: 3729910555134656502, guid: d92b5dbc29165a24fb4f6c670fda224c, type: 3}
+    constcategory: 1
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 1000
+  - conbuildingtype: 5
+    conbuildingSprite: {fileID: 21300000, guid: 5c7b564a9746b3e4da2b730dd2acc136, type: 3}
+    conbuildingPrefab: {fileID: 984244230918127449, guid: afecc186cad195c4b923f6a88d06ed53, type: 3}
+    constcategory: 1
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 200
+  - conbuildingtype: 6
+    conbuildingSprite: {fileID: 21300000, guid: 38d0d4d91c5e8704badf68c8d66b2aac, type: 3}
+    conbuildingPrefab: {fileID: 6491117342175512502, guid: 16f461ea4228726469accd6311e20b2a, type: 3}
+    constcategory: 2
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 200
+  - conbuildingtype: 7
+    conbuildingSprite: {fileID: 21300000, guid: 38d0d4d91c5e8704badf68c8d66b2aac, type: 3}
+    conbuildingPrefab: {fileID: 6491117342175512502, guid: 16f461ea4228726469accd6311e20b2a, type: 3}
+    constcategory: 2
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 200
+  - conbuildingtype: 9
+    conbuildingSprite: {fileID: 21300000, guid: 80609478f4f0f1f418451749f640502c, type: 3}
+    conbuildingPrefab: {fileID: 3651891846305258706, guid: 80de52d04be035444a6c50611bb20da1, type: 3}
+    constcategory: 4
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 200
+  - conbuildingtype: 8
+    conbuildingSprite: {fileID: 21300000, guid: ed29d1a1e14855c41968091c48e9a110, type: 3}
+    conbuildingPrefab: {fileID: 3235062349772456184, guid: 94f87391367ac644fb78e6d8ac8d4f8e, type: 3}
+    constcategory: 3
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 200
