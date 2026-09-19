@@ -31,7 +31,6 @@ public class VillagerBase : MonoBehaviour
     public NavMeshAgent agent;
     public float ArriveRadius = 1f;
     //村人の進むスピード
-    public float agentspeed = 10f;
     public float agentroadacc = 2f;
     public float timeoutSeconds = 30f;
 
@@ -213,6 +212,7 @@ public class VillagerBase : MonoBehaviour
              agent.velocity.sqrMagnitude < 0.01f);
 
         agent.isStopped = true;
+        arrcheck = null;
         if (state == GoState.GoJobBuilding || state == GoState.GoCarry)
         {
             MyRenderOff();
@@ -225,9 +225,7 @@ public class VillagerBase : MonoBehaviour
         else if(state == GoState.GoLeisure)
         {
             StartCoroutine(StartLeisure(target));
-        }
-        arrcheck = null;
-        
+        } 
     }
 
     IEnumerator StartLeisure (GameObject leisure)
