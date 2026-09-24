@@ -8,16 +8,15 @@ public class HouseUICont : MonoBehaviour
     UIController UC;
 
     public GameObject HouseUI; // UIパネル
-    public Transform VillagersPanelPa;
+    public GameObject HouseMainPanel;
     public GameObject VillagerPanelPrefab;
 
-    public GameObject VillagerMeterPanelUI;
-    public Image HungerMeterImage;
+    //public GameObject VillagerMeterPanelUI;
+    //public Image HungerMeterImage;
 
     public GameObject JobChangePanelUI;
     public Transform JobChangeScrollContentPa;
     public GameObject JobChangeScrollContentPrefab;
-
     public Button JobBackButton;
 
     void Start()
@@ -28,27 +27,31 @@ public class HouseUICont : MonoBehaviour
     public void OpenHouseUI(GameObject house)
     {
         HouseUI.SetActive(true);     // 家UI を表示
-        VillagerMeterPanelUI.SetActive(true);  //消えていた時用にメーターパネルも表示
+        HouseMainPanel.SetActive(true);//家メインUIを表示
         JobChangePanelUI.SetActive(false);//右側は非表示
-        foreach (Transform child in VillagersPanelPa)
+        foreach (Transform child in HouseMainPanel.transform)
         {
             Destroy(child.gameObject);
         }
+
+       
+
         foreach (GameObject villager in UC.houseandvillager.housevillagers[house])//家所属の村人
         {
-            GameObject uiprefab = Instantiate(VillagerPanelPrefab, VillagersPanelPa);
+            GameObject uiprefab = Instantiate(VillagerPanelPrefab, HouseMainPanel.transform);
             Job job = UC.statusManager.villagersjob[villager];//村人から仕事を取得
             HouseUIVillagerPanelPrefab villagerpanelprefab = uiprefab.GetComponent<HouseUIVillagerPanelPrefab>();
             villagerpanelprefab.HouseUICurrentJobImage.sprite = UC.jobbuildingmaster.GetDataByJob(job).jobSprite;
             villagerpanelprefab.HouseUIJobChangeButton.onClick.RemoveAllListeners();
             villagerpanelprefab.HouseUISpotVillagerButton.onClick.RemoveAllListeners();
-            villagerpanelprefab.HouseUIJobChangeButton.onClick.AddListener(() => OpenJobChangeUI(villager));//jobchangeを呼ぶ
+            villagerpanelprefab.HouseUIJobChangeButton.onClick.AddListener(() => OpenJobChangeUI(villager, villagerpanelprefab));//jobchangeを呼ぶ
             villagerpanelprefab.HouseUISpotVillagerButton.onClick.AddListener(() => UC.SpotToVillager(villager,0));//SpotVillagerを呼ぶ  HouseUIから呼ばれたことを示すため　→　0
             VillagerHappiness VH = villager.GetComponent<VillagerHappiness>();
             float hungerlevel = VH.HungerLevel;
-            HungerMeterUpdate(hungerlevel);
+            //HungerMeterUpdate(hungerlevel);
         }  
     }
+    /*
     private void HungerMeterUpdate(float hungerlevel)
     {
         float scaledValue = hungerlevel / 100 * 0.55f;
@@ -56,15 +59,14 @@ public class HouseUICont : MonoBehaviour
         scale.x = scaledValue;
         HungerMeterImage.rectTransform.localScale = scale;
     }
-    
-    private void OpenJobChangeUI(GameObject villager)//家の村人
+    */
+    private void OpenJobChangeUI(GameObject villager, HouseUIVillagerPanelPrefab mainPanel)//家の村人
     {
-        //メーター部分を非表示
-        VillagerMeterPanelUI.SetActive(false);
         JobChangePanelUI.SetActive(true);
+        HouseMainPanel.SetActive(false);
         //ジョブチェンジから戻るボタン
         JobBackButton.onClick.RemoveAllListeners();
-        JobBackButton.onClick.AddListener(() => BackJobChangeUI());
+        JobBackButton.onClick.AddListener(() => BackToJobChangeUI());
 
         foreach(Transform child in JobChangeScrollContentPa)
         {
@@ -85,7 +87,7 @@ public class HouseUICont : MonoBehaviour
 
 
                 panelprefab.ChangeJobButton.onClick.RemoveAllListeners();
-                panelprefab.ChangeJobButton.onClick.AddListener(() => JobChangeClicked(villager,job,null));
+                panelprefab.ChangeJobButton.onClick.AddListener(() => JobChangeClicked(villager,job,null, mainPanel));
             }   
         }
 
@@ -103,19 +105,30 @@ public class HouseUICont : MonoBehaviour
 
 
                 panelprefab.ChangeJobButton.onClick.RemoveAllListeners();
-                panelprefab.ChangeJobButton.onClick.AddListener(() => JobChangeClicked(villager, UC.jobbuildingmaster.GetDataByBuilding(data.buildingType).jobType,data.building));
+                panelprefab.ChangeJobButton.onClick.AddListener(() => JobChangeClicked(villager, UC.jobbuildingmaster.GetDataByBuilding(data.buildingType).jobType,data.building, mainPanel));
             }
         
         }
     }
-    private void BackJobChangeUI()
+    private void BackToJobChangeUI()
     {
+        //Debug.Log("BackToJobChangeUI");
         JobChangePanelUI.SetActive(false);
-        VillagerMeterPanelUI.SetActive(true);
+        HouseMainPanel.SetActive(true);
     }
-    private void JobChangeClicked(GameObject villager,Job job,GameObject jobBuilding)
+    private void JobChangeClicked(
+    GameObject villager,
+    Job job,
+    GameObject jobBuilding,
+    HouseUIVillagerPanelPrefab mainPanel
+)
     {
-        UC.statusManager.AssignVillagerJob(villager, job,jobBuilding);
-        UC.CloseUI();
+        UC.statusManager.AssignVillagerJob(villager, job, jobBuilding);
+
+        // メインパネルの職業画像を更新
+        mainPanel.HouseUICurrentJobImage.sprite =
+            UC.jobbuildingmaster.GetDataByJob(job).jobSprite;
+
+        BackToJobChangeUI();
     }
 }

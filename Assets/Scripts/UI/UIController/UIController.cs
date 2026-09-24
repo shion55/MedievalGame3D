@@ -214,12 +214,13 @@ public class UIController : MonoBehaviour
         cameracont.CameraContActive = true;　　//カメラは動かせる　→拡大・縮小だけ
         cameracont.EnterFollowMode(villager); //spot用にカメラが動く
 
-        // 既存コルーチンがあれば止める
+        // outlineは使えないので一旦コメントアウト
+        /*
         if (outlineRoutine != null) StopCoroutine(outlineRoutine);
         outlineRoutine = StartCoroutine(OutlineMonitor(villager));
-
-         BackButtonActive(() => {
-                                StopOutlineMonitor();
+        */
+        BackButtonActive(() => {
+                                //StopOutlineMonitor();
                                 ReturnSpotToUI(villager,UItypeindex);//どこから呼ばれたかの通し番号
                 }); 
         

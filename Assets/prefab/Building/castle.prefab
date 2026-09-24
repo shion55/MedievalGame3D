@@ -138,9 +138,6 @@ PrefabInstance:
       addedObject: {fileID: 6528734922057130835}
     - targetCorrespondingSourceObject: {fileID: 8733668430768489349, guid: 093b280e63effdf4e85a468ece09a04b, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8224837001080083202}
-    - targetCorrespondingSourceObject: {fileID: 8733668430768489349, guid: 093b280e63effdf4e85a468ece09a04b, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 6708447734800625105}
   m_SourcePrefab: {fileID: 100100000, guid: 093b280e63effdf4e85a468ece09a04b, type: 3}
 --- !u!4 &1535019903197081222 stripped
@@ -174,30 +171,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 11.289356, y: 8.895928, z: 10.100049}
   m_Center: {x: -0.04591322, y: 4.447963, z: -0.007954121}
---- !u!114 &8224837001080083202
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2163606699939148860}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 271c580db5fd384429cdac899152e9e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _outlineResources: {fileID: 11400000, guid: d28e70f030b1a634db9a6a6d5478ef19, type: 2}
-  _outlineSettings:
-    _outlineSettings: {fileID: 0}
-    _outlineColor: {r: 1, g: 1, b: 1, a: 1}
-    _outlineWidth: 1
-    _outlineIntensity: 2
-    _outlineAlphaCutoff: 0.9
-    _outlineMode: 0
-  _ignoreLayerMask: 0
-  _cameraEvent: 15
-  _targetCamera: {fileID: 0}
-  _updateRenderers: 0
 --- !u!114 &6708447734800625105
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -218,3 +191,4 @@ MonoBehaviour:
   workers: []
   OccupantVillagers: []
   capacity: 0
+  amuseneedmaterials: 

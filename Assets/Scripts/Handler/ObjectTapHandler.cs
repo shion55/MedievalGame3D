@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst.CompilerServices;
+using UnityEngine.EventSystems;
 using UnityEngine;
 
 public class ObjectTapHandler : MonoBehaviour
@@ -34,6 +35,11 @@ public class ObjectTapHandler : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0)) // タップ or クリック
         {
+            if (EventSystem.current != null &&
+            EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit) && !uiController.UIOPEN)
             {

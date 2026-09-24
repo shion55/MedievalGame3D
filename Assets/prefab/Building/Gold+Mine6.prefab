@@ -116,9 +116,6 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6f6ae47eea1a45a4a9270bbe8b9aae68, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7335452223474791416}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6f6ae47eea1a45a4a9270bbe8b9aae68, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1332191097174573107}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6f6ae47eea1a45a4a9270bbe8b9aae68, type: 3}
       insertIndex: -1
@@ -134,30 +131,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 6f6ae47eea1a45a4a9270bbe8b9aae68, type: 3}
   m_PrefabInstance: {fileID: 6256763243485919975}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7335452223474791416
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6491117342175512502}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 271c580db5fd384429cdac899152e9e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _outlineResources: {fileID: 11400000, guid: d28e70f030b1a634db9a6a6d5478ef19, type: 2}
-  _outlineSettings:
-    _outlineSettings: {fileID: 0}
-    _outlineColor: {r: 1, g: 1, b: 1, a: 1}
-    _outlineWidth: 1
-    _outlineIntensity: 2
-    _outlineAlphaCutoff: 0.9
-    _outlineMode: 0
-  _ignoreLayerMask: 0
-  _cameraEvent: 15
-  _targetCamera: {fileID: 0}
-  _updateRenderers: 0
 --- !u!64 &1332191097174573107
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -193,10 +166,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   building: {fileID: 0}
-  category: 0
+  buildingcategory: 0
   buildingType: 0
   buildingjob: 0
   workerLimit: 0
   workers: []
   OccupantVillagers: []
   capacity: 0
+  amuseneedmaterials: 

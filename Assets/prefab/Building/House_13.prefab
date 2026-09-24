@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 7781072596812140339}
   - component: {fileID: 8059172402290250413}
   - component: {fileID: 2500138173262236296}
-  - component: {fileID: 9003707604585071643}
   - component: {fileID: 3740333577993242090}
   m_Layer: 6
   m_Name: House_13
@@ -61,6 +60,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -107,30 +109,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5.2028527, y: 3.634682, z: 3.136534}
   m_Center: {x: -2.2746985, y: 1.817341, z: 1.5275589}
---- !u!114 &9003707604585071643
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5046265381819307380}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 271c580db5fd384429cdac899152e9e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _outlineResources: {fileID: 11400000, guid: d28e70f030b1a634db9a6a6d5478ef19, type: 2}
-  _outlineSettings:
-    _outlineSettings: {fileID: 0}
-    _outlineColor: {r: 1, g: 1, b: 1, a: 1}
-    _outlineWidth: 1
-    _outlineIntensity: 2
-    _outlineAlphaCutoff: 0.9
-    _outlineMode: 0
-  _ignoreLayerMask: 0
-  _cameraEvent: 15
-  _targetCamera: {fileID: 0}
-  _updateRenderers: 0
 --- !u!114 &3740333577993242090
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -121,7 +121,7 @@ public class VillagerBase : MonoBehaviour
         //城保存
         Castle = GameObject.Find("Castle");
     }
-    private void Update()
+    /*private void Update()
     {
         if (agent.isActiveAndEnabled == true)
         {
@@ -133,7 +133,7 @@ public class VillagerBase : MonoBehaviour
                 transform.forward = direction;
             }
         }
-    }
+    }*/
     public void JobChange(Job job,GameObject jobbuilding)//statusmanagerから呼び出し
     {
         jobchangeto = job;
@@ -165,67 +165,108 @@ public class VillagerBase : MonoBehaviour
         DebugController.Log($"職業変更{jobchangeto}"+"-"+$"{MyIndex.ToString()}");
     }
 
-    public void DepartToTarget(GameObject target,GoState state)
+    public void DepartToTarget(GameObject target, GoState state)
     {
-        DebugController.Log("DepartTo" + $"{target.name}" + "ー" + $"{currentjob}");
+        DebugController.Log("DepartTo" + target.name + "ー" + currentjob);
+
         agent.isStopped = false;
-        MyRenderOn();
-        
-        if(state == GoState.GoJobBuilding 
-            || state == GoState.GoLeisure 
-            || state == GoState.GoObject)
-        {
-            anim.Play(AnimType.Walk);
-        }
-        else if(state == GoState.GoCarry)
-        {
-            anim.Play(AnimType.Carry);
-        }
-        if (arrcheck == null)
-        {
-            arrcheck = StartCoroutine(ArrCheck(target,state));
-        }
-        //入口オブジェクトがあるなら
+
         Transform targetent = target.transform.Find("Entrance");
+
         if (targetent != null)
         {
-            agent.SetDestination(targetent.transform.position);
+            agent.SetDestination(targetent.position);
         }
         else
         {
             agent.SetDestination(target.transform.position);
         }
+
+        StartCoroutine(ShowAfterFacingDirection(state));//向きとアニメを調整
+
+        if (arrcheck == null)
+        {
+            arrcheck = StartCoroutine(ArrCheck(target, state));
+        }
     }
-    
+    IEnumerator ShowAfterFacingDirection(GoState state)
+    {
+        // SetDestinationの経路計算を1フレーム待つ
+        yield return null;
+
+        yield return new WaitUntil(() => !agent.pathPending);
+
+        // NavMeshの最初の進行方向を向く
+        if (agent.path != null && agent.path.corners.Length > 1)
+        {
+            Vector3 direction =
+                agent.path.corners[1] - transform.position;
+
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude > 0.001f)
+            {
+                transform.rotation =
+                    Quaternion.LookRotation(direction);
+            }
+        }
+
+        // 向きを直してから表示
+        MyRenderOn();
+
+        if (state == GoState.GoJobBuilding
+            || state == GoState.GoLeisure
+            || state == GoState.GoObject)
+        {
+            anim.Play(AnimType.Walk);
+        }
+        else if (state == GoState.GoCarry)
+        {
+            anim.Play(AnimType.Carry);
+        }
+    }
     IEnumerator ArrCheck(GameObject target,GoState state)
     {
+        // SetDestinationしたフレームではまだ経路計算が始まっていないことがある
+        yield return null;
+
+        // 経路計算終了まで待つ
         yield return new WaitUntil(() => !agent.pathPending);
-        if (agent.pathStatus != NavMeshPathStatus.PathComplete)
+
+
+        if (!agent.hasPath ||
+            agent.pathStatus != NavMeshPathStatus.PathComplete)
         {
-            Debug.Log("経路が見つからなかったので脱出します。");
-            agent.enabled=false;
-           transform.position = target.transform.position;
-            agent.enabled = true;
+            Debug.LogWarning(
+                $"経路が見つかりませんでした: {target.name}"
+            );
+
+            agent.isStopped = true;
+            arrcheck = null;
+            yield break;
         }
+
         yield return new WaitUntil(() =>
-             agent.remainingDistance <= ArriveRadius &&
-             agent.velocity.sqrMagnitude < 0.01f);
+            agent.remainingDistance <= ArriveRadius &&
+            agent.velocity.sqrMagnitude < 0.01f);
 
         agent.isStopped = true;
         arrcheck = null;
-        if (state == GoState.GoJobBuilding || state == GoState.GoCarry)
+
+        if (state == GoState.GoJobBuilding ||
+            state == GoState.GoCarry)
         {
             MyRenderOff();
             jobandscript[currentjob].ArriveAtTarget(target);
         }
-        else if(state == GoState.GoObject)
+        else if (state == GoState.GoObject)
         {
             jobandscript[currentjob].ArriveAtTarget(target);
         }
-        else if(state == GoState.GoLeisure)
+        else if (state == GoState.GoLeisure)
         {
             StartCoroutine(StartLeisure(target));
-        } 
+        }
     }
 
     IEnumerator StartLeisure (GameObject leisure)
