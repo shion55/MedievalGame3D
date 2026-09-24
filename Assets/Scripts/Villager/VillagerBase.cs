@@ -98,7 +98,7 @@ public class VillagerBase : MonoBehaviour
         treemanager = GameObject.Find("TREEMANAGER").GetComponent<TreeManager>();
         houseandvillager = GameObject.Find("HOUSEVILLAGER").GetComponent<HouseAndVillager>();
         buildiingmanager = GameObject.Find("BUILTINGMANAGER").GetComponent<BuildingManager>();
-        constManager = GameObject.Find("CONSTRUCTIONMANAGER").GetComponent<ConstructioinManager>();
+        constManager = GameObject.Find("ConstructionManager").GetComponent<ConstructioinManager>();
         statusManager = GameObject.Find("VillagerStatusManager").GetComponent<VIllagerStatusManager>();
         WSUIcontroller = GameObject.Find("WorldSpaceUIController").GetComponent<WorldSpaceUIController>();
         uicontroller = GameObject.Find("UIController").GetComponent<UIController>();

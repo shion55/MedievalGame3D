@@ -82,7 +82,10 @@ public class ConstructioinManager : MonoBehaviour
             ConstableBuildingType.Add(type);
         }
     }
-    public void ConstractionSetting(GameObject site,ConstBuildingType type,Vector3 snapPos)
+    public void ConstractionSetting(GameObject site,
+        ConstBuildingType type,
+        Vector3 snapPos,
+        Quaternion spawnRotation)
     {
         var matdict = constbuildingmaster.GetData(type).GetMaterialDict();
         matdict.Remove(MaterialType.Money);
@@ -94,6 +97,7 @@ public class ConstructioinManager : MonoBehaviour
         data.constBuildingType = type;
         data.requiredMaterials = matdict;
         data.spownPos = snapPos;
+        data.spawnRotation = spawnRotation;
         data.smoke = SmokeObject;
     }
     public void StartConstuction(GameObject site,GameObject builder)//パーティクルの処理等
@@ -143,10 +147,8 @@ public class ConstructioinManager : MonoBehaviour
         
         //生成準備
         Vector3 constplace = data.spownPos;
-
-        Vector3 cameraDirection = Camera.main.transform.forward;
-        cameraDirection.y = 0;
-
+        Quaternion constRotation = data.spawnRotation;
+        
         //建設地も消す
         Destroy(site);
         
@@ -155,7 +157,10 @@ public class ConstructioinManager : MonoBehaviour
 
         if (buildingType == ConstBuildingType.House){
             //家だった場合
-            GameObject housebuilding = Instantiate(buildingprefab,constplace, Quaternion.LookRotation(cameraDirection),houseParent.transform);     
+            GameObject housebuilding = Instantiate(buildingprefab,
+                constplace,
+                 constRotation,
+                houseParent.transform);     
             houseandvillager.HouseGenerated(housebuilding);
             moneyManager.GenerateCoin(housebuilding);
         }
@@ -164,20 +169,20 @@ public class ConstructioinManager : MonoBehaviour
             ConstCategory category = constbuildingmaster.GetData(buildingType).constcategory;
             if (category == ConstCategory.JobBuilding)
             {
-                AdjustJobBuilding(buildingprefab, constplace, buildingType,cameraDirection);
+                AdjustJobBuilding(buildingprefab, constplace, buildingType, constRotation);
             }
             else if(category == ConstCategory.AmuseBuilding)
             {
-                AdjustAmuseBuilding(buildingprefab,constplace,buildingType);
+                AdjustAmuseBuilding(buildingprefab,constplace,buildingType, constRotation);
 
             }
         }
 
         StartCoroutine(RebuildNavMesh());
     }
-    void AdjustJobBuilding(GameObject buildingprefab,Vector3 constplace,ConstBuildingType buildingType,Vector3 cameradir)
+    void AdjustJobBuilding(GameObject buildingprefab,Vector3 constplace,ConstBuildingType buildingType, Quaternion rotation)
     {
-        GameObject building = Instantiate(buildingprefab, constplace, buildingprefab.transform.rotation, buildingParent.transform);
+        GameObject building = Instantiate(buildingprefab, constplace,rotation, buildingParent.transform);
         
 
         BuildingType type = (BuildingType)System.Enum.Parse(typeof(BuildingType), buildingType.ToString());
@@ -232,9 +237,9 @@ public class ConstructioinManager : MonoBehaviour
 
         worldSpaceUIController.GenerateWorldSpaceBuildingUI(constplace, building);
     }
-    void AdjustAmuseBuilding(GameObject buildingprefab, Vector3 constplace, ConstBuildingType buildingType)
+    void AdjustAmuseBuilding(GameObject buildingprefab, Vector3 constplace, ConstBuildingType buildingType, Quaternion rotation)
     {
-        GameObject building = Instantiate(buildingprefab, constplace, buildingprefab.transform.rotation, buildingParent.transform);
+        GameObject building = Instantiate(buildingprefab, constplace,rotation, buildingParent.transform);
         BuildingType type = (BuildingType)System.Enum.Parse(typeof(BuildingType), buildingType.ToString());
 
         //マテリアルはSOでまとめてbuildingtype毎に変える↓    今は市場用(マテリアル特に)

@@ -1,9 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class ConstSiteSetHandler : MonoBehaviour
@@ -11,270 +10,864 @@ public class ConstSiteSetHandler : MonoBehaviour
     public UIController uiController;
     public ConstructioinManager constManager;
     public ConstBuildingMasterDataSO constbuildingmaster;
-    public ConstSetLine constsetline;
 
+    [Header("設置対象")]
     public GameObject Plane;
     public GameObject Site;
     public Transform PreviewObjParent;
 
-    [HideInInspector]
-    public bool SiteGenMode = false;
-    public float checkRadius = 5f;//建物の周りに建てられない範囲
-
-    [Header("釣り人小屋の設置範囲用Collider")]
+    [Header("釣り人小屋")]
     public GameObject PondCollider;
-    [SerializeField] private LayerMask hitLayers;
 
+    [Header("設置不可判定")]
+    [SerializeField]
+    private LayerMask hitLayers;
+
+    [Header("プレビュー")]
     public Material previewMaterial;
 
+    public Color canPlaceColor = Color.grey;
+    public Color cannotPlaceColor = Color.red;
+
+    [Header("ボタン")]
     public Button SiteSetButton;
     public Button SiteSetStopButton;
+
+    // 新しく作る
+    public Button SiteRotateButton;
+
+    [Header("回転")]
+    public float rotateStep = 45f;
+
+
+    [HideInInspector]
+    public bool SiteGenMode = false;
+
     private bool CanSetSite = false;
 
-    private Vector3 snapPos;
-
-    private Dictionary<ConstBuildingType, GameObject> PreviewObjects = new Dictionary<ConstBuildingType, GameObject>();
     private ConstBuildingType buildingNowType;
+
     private GameObject NowPreviewPrefab;
-    private List<MeshRenderer> NowRenderers = new List<MeshRenderer>();
-    private Vector3 startpos;
+
+    private readonly List<Renderer> NowRenderers =
+        new List<Renderer>();
+
+    private readonly Dictionary<ConstBuildingType, GameObject>
+        PreviewObjects =
+        new Dictionary<ConstBuildingType, GameObject>();
+
+    private readonly Dictionary<ConstBuildingType, Quaternion>
+        PreviewBaseRotations =
+        new Dictionary<ConstBuildingType, Quaternion>();
+
 
     private void Start()
     {
-        foreach(ConstBuildingType constbuilding in Enum.GetValues(typeof(ConstBuildingType)))
-        {
-           GameObject prefab = constbuildingmaster.GetData(constbuilding).conbuildingPrefab;
-            GameObject building = Instantiate(prefab, new Vector3(20, 20, 20), prefab.transform.rotation, PreviewObjParent);
-            //普通の建物のprefabをpreview用に加工していく
-            foreach (var renderer in building.GetComponentsInChildren<Renderer>())
-            {
-                var mats = renderer.materials;
-                for (int i = 0; i < mats.Length; i++)
-                {
-                    mats[i] = previewMaterial;
-                }
-                renderer.materials = mats; // ← これでちゃんと反映される！
+        // =========================
+        // プレビューをあらかじめ生成
+        // =========================
 
+        foreach (
+            ConstBuildingType type
+            in Enum.GetValues(typeof(ConstBuildingType)))
+        {
+            var data = constbuildingmaster.GetData(type);
+
+            if (data == null)
+                continue;
+
+            GameObject prefab = data.conbuildingPrefab;
+
+            if (prefab == null)
+                continue;
+
+
+            GameObject building = Instantiate(
+                prefab,
+                new Vector3(20f, 20f, 20f),
+                prefab.transform.rotation,
+                PreviewObjParent
+            );
+
+
+            // -------------------------
+            // プレビューMaterial
+            // -------------------------
+
+            foreach (
+                Renderer renderer
+                in building.GetComponentsInChildren<Renderer>())
+            {
+                Material[] materials =
+                    renderer.materials;
+
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    materials[i] = previewMaterial;
+                }
+
+                renderer.materials = materials;
                 renderer.enabled = false;
             }
-            // 不要なスクリプトを無効にする
-            foreach (var comp in building.GetComponentsInChildren<MonoBehaviour>())
+
+
+            // -------------------------
+            // スクリプト停止
+            // -------------------------
+
+            foreach (
+                MonoBehaviour comp
+                in building.GetComponentsInChildren<MonoBehaviour>())
             {
                 comp.enabled = false;
             }
-            foreach (var col in building.GetComponentsInChildren<Collider>())
+
+
+            // -------------------------
+            // プレビュー自身のColliderは判定しない
+            // -------------------------
+
+            foreach (
+                Collider col
+                in building.GetComponentsInChildren<Collider>())
             {
-                col.isTrigger = true;
+                col.enabled = false;
             }
-            foreach (var nav in building.GetComponentsInChildren<NavMeshObstacle>())
+
+
+            foreach (
+                NavMeshObstacle nav
+                in building.GetComponentsInChildren<NavMeshObstacle>())
             {
                 nav.enabled = false;
             }
-            PreviewObjects.Add(constbuilding, building);//建物の種類とプレビューオブジェクトの辞書
+
+
+            PreviewObjects.Add(type, building);
+
+            PreviewBaseRotations.Add(
+                type,
+                prefab.transform.rotation
+            );
         }
-        
+
+
         SiteSetButton.gameObject.SetActive(false);
         SiteSetStopButton.gameObject.SetActive(false);
-        SiteSetButton.onClick.AddListener(() => SetSiteExecute());
-        SiteSetStopButton.onClick.AddListener(() => SiteGenModeOff());
-    }
-    void Update()
-    {
-        if (SiteGenMode)
+
+        if (SiteRotateButton != null)
         {
-            SetSite();
+            SiteRotateButton.gameObject.SetActive(false);
+        }
+
+
+        SiteSetButton.onClick.AddListener(
+            ConfirmPlacement
+        );
+
+        SiteSetStopButton.onClick.AddListener(
+            SiteGenModeOff
+        );
+
+        if (SiteRotateButton != null)
+        {
+            SiteRotateButton.onClick.AddListener(
+    () => RotatePreview(rotateStep)
+);
         }
     }
 
-    public void SiteGenModeOn(ConstBuildingType type)//UIControllerから呼ばれる
+
+    private void Update()
     {
+        if (!SiteGenMode)
+            return;
+
+        UpdatePreview();
+
+        if (!Application.isMobilePlatform)
+        {
+            HandlePCInput();
+        }
+    }
+
+
+    // =========================================================
+    // 設置モード開始
+    // =========================================================
+
+    public void SiteGenModeOn(ConstBuildingType type)
+    {
+        if (!PreviewObjects.ContainsKey(type))
+            return;
+
+
         buildingNowType = type;
+
         CanSetSite = false;
-        NowPreviewPrefab = PreviewObjects[type];//プレビューオブジェクト
+
+        NowPreviewPrefab =
+            PreviewObjects[type];
+
+
+        // 前回回した向きをリセット
+        NowPreviewPrefab.transform.rotation =
+            PreviewBaseRotations[type];
+
 
         NowRenderers.Clear();
-        NowRenderers.AddRange(NowPreviewPrefab.GetComponentsInChildren<MeshRenderer>());
 
-        NowRenderers.ForEach(rend => rend.enabled = true);
-        startpos = NowPreviewPrefab.transform.position;//線
-        
-        Collider collider = NowPreviewPrefab.GetComponent<Collider>();
-        collider.enabled = true;
-        Vector3 collidersize =  collider.bounds.size;
-        checkRadius = Mathf.Max(collidersize.x, collidersize.z)/2;
-        collider.enabled = false;
-        constsetline.OnConstGide(collidersize);//線をオンに
+        NowRenderers.AddRange(
+            NowPreviewPrefab
+                .GetComponentsInChildren<Renderer>()
+        );
+
+
+        foreach (Renderer renderer in NowRenderers)
+        {
+            renderer.enabled = true;
+        }
 
 
         SiteGenMode = true;
 
-        SiteSetStopButton.gameObject.SetActive(true);
-        DebugController.Log("建設地決定モードオン");
-    }
-    public void SiteGenModeOff()
-    {
-        SiteGenMode = false;
-        uiController.CloseUI();
-        NowRenderers.ForEach(rend => rend.enabled = false);
-        NowPreviewPrefab.transform.position = startpos;
-        
-        constsetline.OffConstGide();
         SiteSetButton.gameObject.SetActive(false);
-        SiteSetStopButton.gameObject.SetActive(false);
-        DebugController.Log("建設地決定モードオフ");
-    }
-    private void SetSite()
-    {
-        Ray ray = Camera.main.ScreenPointToRay(GetInputPosition());
-        RaycastHit hit;
-        RaycastHit[] hits = Physics.RaycastAll(ray, 100f);
-        bool isPlane = false;
-        bool isPond = false;
-        foreach (var item in hits)
+        SiteSetStopButton.gameObject.SetActive(true);
+
+
+        if (SiteRotateButton != null)
         {
-            if(item.collider.gameObject == Plane)
-            {
-                isPlane = true;
-            }
-            else if(item.collider.gameObject == PondCollider)
-            {
-                isPond = true;
-            }
-        }
-        if (Physics.Raycast(ray, out hit))
-        {
-            snapPos = GetSnappedPosition(hit.point);
-                        
-            NowPreviewPrefab.transform.position = snapPos;
-            Vector3 offset = Vector3.zero;
-            Vector3 lineposition= snapPos;
-            //各プレハブごとの微妙な調整
-            if (buildingNowType == ConstBuildingType.sawmill || buildingNowType == ConstBuildingType.mine 
-                )
-            {
-                offset.y += 1.15f;
-            }
-            else if(buildingNowType == ConstBuildingType.huntercabin)
-            {
-               offset.y += 1.4f;
-            }
-            else if(buildingNowType == ConstBuildingType.House)
-            {
-                offset.x += 1.2f;
-                offset.z -= 0.5f;
-            }
-            else if(buildingNowType == ConstBuildingType.market)
-            {
-                offset.y -= 5.3f;
-                lineposition = new Vector3(lineposition.x + 1.3f, lineposition.y, lineposition.z + 1.3f);
-            }
-            NowPreviewPrefab.transform.position += offset;
-           
-           
-            //建築可能
-            //釣り人小屋は湖colliderのフチのみに設置可能
-            if (buildingNowType == ConstBuildingType.fishmancabin)
-            {
-                BoxCollider col = PondCollider.GetComponent<BoxCollider> ();
-                Vector3 snappedpondpos = col.ClosestPoint(snapPos);//湖colliderのフチに移動
-                Vector3 pondcenter = col.bounds.center;
-                Vector3 extents = Vector3.Scale(col.size * 0.5f, col.transform.lossyScale);
-                
-                if (isPond)//カーソル等がが湖内部にいる場合
-                {
-                    Vector3 dir = (snapPos - pondcenter).normalized;
-                    if(dir.sqrMagnitude > 0f)
-                    {
-                        // 方向ベクトルの絶対値を取って、各軸のエクステントに乗算
-                        Vector3 absDir = new Vector3(Mathf.Abs(dir.x), Mathf.Abs(dir.y), Mathf.Abs(dir.z));
-                        // ボックスの境界までの距離は extents と absDir のドット積
-                        float distance = Vector3.Dot(extents, absDir);
-
-                        Vector3 boundaryPos = pondcenter + dir * distance;
-                        snappedpondpos = boundaryPos;
-                    }
-                }
-
-                snappedpondpos.y+= 2f;
-                NowPreviewPrefab.transform.position = snappedpondpos;//移動させて
-                lineposition = snappedpondpos;
-                Vector3 lookTarget = new Vector3(pondcenter.x, snappedpondpos.y, pondcenter.z);
-                NowPreviewPrefab.transform.LookAt(lookTarget);//湖の中心に向かせる
-              
-                    NowRenderers.ForEach(rend => rend.material.color = Color.grey);
-                    if (Input.GetMouseButtonDown(0))
-                    {
-                        GameObject SiteObj = Instantiate(Site, hit.point, Site.transform.rotation);
-                        constManager.waitingSite.Add(SiteObj);
-                        constManager.ConstractionSetting(SiteObj, buildingNowType, NowPreviewPrefab.transform.position);
-                        SiteGenMode = false;
-                        SiteGenModeOff();
-                    }
-             
-            }
-            //通常の建物
-            else if (isPlane && !Physics.CheckSphere(snapPos, checkRadius, hitLayers))
-            {
-                
-                SiteSetButton.gameObject.SetActive(true);
-                CanSetSite = true;
-                if (NowRenderers[0].material.color != Color.grey)
-                {
-                    NowRenderers.ForEach(rend => rend.material.color = Color.grey);
-                }
-                if (Input.GetMouseButtonDown(0))
-                {
-                    GameObject SiteObj = Instantiate(Site, hit.point, Site.transform.rotation);
-                    constManager.waitingSite.Add(SiteObj);
-                    constManager.ConstractionSetting(SiteObj, buildingNowType, NowPreviewPrefab.transform.position);
-                    SiteGenMode = false;
-                    SiteGenModeOff();
-                }
-            }
-            else//建築不可
-            {
-                CanSetSite = false;
-                SiteSetButton.gameObject.SetActive(false);
-                //赤くする
-                NowRenderers.ForEach(rend => rend.material.color = Color.red);
-            }
-
-            constsetline.UpdateConstGideLines(lineposition);
+            // 釣り人小屋は湖を自動で向く
+            SiteRotateButton.gameObject.SetActive(
+                type != ConstBuildingType.fishmancabin
+            );
         }
 
-       
-    }
-    void SetSiteExecute()
-    {
-        if (CanSetSite) {
 
-            DebugController.Log("建設地生成");
-            GameObject SiteObj = Instantiate(Site,snapPos, Site.transform.rotation);
-            constManager.waitingSite.Add(SiteObj);
-            constManager.ConstractionSetting(SiteObj, buildingNowType, snapPos);
-            SiteGenMode = false;
+        DebugController.Log(
+            "建設地決定モードオン"
+        );
+    }
+    private void HandlePCInput()
+    {
+        // 左回転
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            RotatePreview(-rotateStep);
+        }
+
+        // 右回転
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            RotatePreview(rotateStep);
+        }
+
+        // 建築決定
+        if (Input.GetKeyDown(KeyCode.Return) ||
+            Input.GetKeyDown(KeyCode.KeypadEnter))
+        {
+            ConfirmPlacement();
+        }
+
+        // キャンセル
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
             SiteGenModeOff();
         }
     }
 
-    Vector3 GetSnappedPosition(Vector3 rawPos)
+    // =========================================================
+    // 設置モード終了
+    // =========================================================
+
+    public void SiteGenModeOff()
     {
-        float gridSize = 1f; // 好きなサイズに
-        float x = Mathf.Round(rawPos.x / gridSize) * gridSize;
-        float z = Mathf.Round(rawPos.z / gridSize) * gridSize;
-        return new Vector3(x, Plane.transform.position.y +1.8f, z);
+        SiteGenMode = false;
+        CanSetSite = false;
+
+
+        if (NowPreviewPrefab != null)
+        {
+            foreach (Renderer renderer in NowRenderers)
+            {
+                renderer.enabled = false;
+            }
+
+
+            NowPreviewPrefab.transform.position =
+                new Vector3(20f, 20f, 20f);
+        }
+
+
+        SiteSetButton.gameObject.SetActive(false);
+        SiteSetStopButton.gameObject.SetActive(false);
+
+
+        if (SiteRotateButton != null)
+        {
+            SiteRotateButton.gameObject.SetActive(false);
+        }
+
+
+        uiController.CloseUI();
+
+
+        DebugController.Log(
+            "建設地決定モードオフ"
+        );
     }
-    void OnDrawGizmos()
+
+
+    // =========================================================
+    // プレビュー更新
+    // =========================================================
+
+    private void UpdatePreview()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(snapPos, checkRadius);
+        if (!TryGetPointerPosition(
+                out Vector2 pointerPosition))
+        {
+            return;
+        }
+
+
+        Ray ray =
+            Camera.main.ScreenPointToRay(
+                pointerPosition
+            );
+
+
+        if (buildingNowType ==
+            ConstBuildingType.fishmancabin)
+        {
+            UpdateFishermanCabin(ray);
+        }
+        else
+        {
+            UpdateNormalBuilding(ray);
+        }
     }
-    Vector2 GetInputPosition()
+
+
+    // =========================================================
+    // 普通の建物
+    // =========================================================
+
+    private void UpdateNormalBuilding(Ray ray)
     {
-        // タッチ対応デバイスかつタッチされていればその位置
-        if (Input.touchSupported && Input.touchCount > 0)
-            return Input.GetTouch(0).position;
-        // それ以外はマウス位置
-        return Input.mousePosition;
+        if (!TryRaycastObject(
+                Plane,
+                ray,
+                out RaycastHit hit))
+        {
+            SetCanPlace(false);
+            return;
+        }
+
+
+        // グリッドスナップしない
+        // hit.pointをそのまま使う
+        NowPreviewPrefab.transform.position =
+            hit.point;
+
+
+        bool blocked =
+            IsPlacementBlocked();
+
+
+        SetCanPlace(!blocked);
+    }
+
+
+    // =========================================================
+    // 釣り人小屋
+    // =========================================================
+
+    private void UpdateFishermanCabin(Ray ray)
+    {
+        if (!TryRaycastObject(
+                PondCollider,
+                ray,
+                out RaycastHit pondHit))
+        {
+            SetCanPlace(false);
+            return;
+        }
+
+
+        Collider pondCol =
+            PondCollider.GetComponent<Collider>();
+
+        if (pondCol == null)
+        {
+            SetCanPlace(false);
+            return;
+        }
+
+
+        Vector3 position =
+            GetPondEdgePosition(
+                pondHit.point,
+                pondCol.bounds
+            );
+
+
+        // 地面の高さも取れるなら使う
+        if (TryRaycastObject(
+                Plane,
+                ray,
+                out RaycastHit groundHit))
+        {
+            position.y =
+                groundHit.point.y;
+        }
+
+
+        NowPreviewPrefab.transform.position =
+            position;
+
+
+        // 湖の中心を向く
+        Vector3 pondCenter =
+            pondCol.bounds.center;
+
+        Vector3 lookTarget =
+            new Vector3(
+                pondCenter.x,
+                position.y,
+                pondCenter.z
+            );
+
+
+        Vector3 direction =
+            lookTarget - position;
+
+        if (direction.sqrMagnitude > 0.001f)
+        {
+            NowPreviewPrefab.transform.rotation =
+                Quaternion.LookRotation(direction);
+        }
+
+
+        bool blocked =
+            IsPlacementBlocked();
+
+
+        SetCanPlace(!blocked);
+    }
+
+
+    // =========================================================
+    // 池の縁へ移動
+    // =========================================================
+
+    private Vector3 GetPondEdgePosition(
+        Vector3 pointerPosition,
+        Bounds bounds)
+    {
+        Vector3 center = bounds.center;
+
+        Vector3 dir =
+            pointerPosition - center;
+
+        dir.y = 0f;
+
+
+        if (dir.sqrMagnitude < 0.001f)
+        {
+            dir = Vector3.forward;
+        }
+
+
+        dir.Normalize();
+
+
+        float distanceX =
+            Mathf.Abs(dir.x) > 0.001f
+                ? bounds.extents.x /
+                  Mathf.Abs(dir.x)
+                : Mathf.Infinity;
+
+
+        float distanceZ =
+            Mathf.Abs(dir.z) > 0.001f
+                ? bounds.extents.z /
+                  Mathf.Abs(dir.z)
+                : Mathf.Infinity;
+
+
+        float distance =
+            Mathf.Min(
+                distanceX,
+                distanceZ
+            );
+
+
+        Vector3 edge =
+            center + dir * distance;
+
+
+        edge.y =
+            pointerPosition.y;
+
+
+        return edge;
+    }
+
+
+    // =========================================================
+    // 建物との重なり判定
+    // =========================================================
+
+    private bool IsPlacementBlocked()
+    {
+        BoxCollider placementArea =
+            FindPlacementArea();
+
+
+        // PlacementAreaがあるPrefab
+        if (placementArea != null)
+        {
+            Vector3 center =
+                placementArea.transform
+                    .TransformPoint(
+                        placementArea.center
+                    );
+
+
+            Vector3 scale =
+                placementArea.transform
+                    .lossyScale;
+
+
+            Vector3 halfExtents =
+                new Vector3(
+                    placementArea.size.x *
+                    Mathf.Abs(scale.x) * 0.5f,
+
+                    placementArea.size.y *
+                    Mathf.Abs(scale.y) * 0.5f,
+
+                    placementArea.size.z *
+                    Mathf.Abs(scale.z) * 0.5f
+                );
+
+
+            return Physics.CheckBox(
+                center,
+                halfExtents,
+                placementArea.transform.rotation,
+                hitLayers,
+                QueryTriggerInteraction.Ignore
+            );
+        }
+
+
+        // まだPlacementAreaを作っていないPrefabは
+        // Renderer全体から仮判定
+        if (NowRenderers.Count == 0)
+            return false;
+
+
+        Bounds bounds =
+            NowRenderers[0].bounds;
+
+
+        for (int i = 1; i < NowRenderers.Count; i++)
+        {
+            bounds.Encapsulate(
+                NowRenderers[i].bounds
+            );
+        }
+
+
+        return Physics.CheckBox(
+            bounds.center,
+            bounds.extents,
+            Quaternion.identity,
+            hitLayers,
+            QueryTriggerInteraction.Ignore
+        );
+    }
+
+
+    // =========================================================
+    // PlacementAreaを探す
+    // =========================================================
+
+    private BoxCollider FindPlacementArea()
+    {
+        BoxCollider[] colliders =
+            NowPreviewPrefab
+                .GetComponentsInChildren<BoxCollider>(
+                    true
+                );
+
+
+        foreach (BoxCollider collider in colliders)
+        {
+            if (collider.gameObject.name ==
+                "PlacementArea")
+            {
+                return collider;
+            }
+        }
+
+
+        return null;
+    }
+
+
+    // =========================================================
+    // 設置可能状態
+    // =========================================================
+
+    private void SetCanPlace(bool canPlace)
+    {
+        CanSetSite = canPlace;
+
+        SiteSetButton.gameObject.SetActive(
+            canPlace
+        );
+
+
+        Color color =
+            canPlace
+                ? canPlaceColor
+                : cannotPlaceColor;
+
+
+        foreach (Renderer renderer in NowRenderers)
+        {
+            foreach (Material mat in renderer.materials)
+            {
+                mat.color = color;
+            }
+        }
+    }
+
+
+    // =========================================================
+    // 回転
+    // =========================================================
+
+    private void RotatePreview(float angle)
+    {
+        if (!SiteGenMode)
+            return;
+
+        if (NowPreviewPrefab == null)
+            return;
+
+        // 釣り人小屋は湖方向へ自動回転
+        if (buildingNowType == ConstBuildingType.fishmancabin)
+            return;
+
+        NowPreviewPrefab.transform.Rotate(
+            0f,
+            angle,
+            0f,
+            Space.World
+        );
+    }
+
+
+    // =========================================================
+    // 設置決定
+    // =========================================================
+
+    private void ConfirmPlacement()
+    {
+        if (!SiteGenMode)
+            return;
+
+        if (!CanSetSite)
+            return;
+
+
+        var data =
+            constbuildingmaster.GetData(
+                buildingNowType
+            );
+
+
+        int needMoney = 0;
+
+        data.GetMaterialDict().TryGetValue(
+            MaterialType.Money,
+            out needMoney
+        );
+
+
+        // 決定時にもう一度所持金確認
+        if (uiController.moneyManager.HavingMoney
+            < needMoney)
+        {
+            DebugController.Log(
+                "お金足りない"
+            );
+
+            return;
+        }
+
+
+        // ここで初めて支払う
+        uiController.moneyManager
+            .HavingMoneyUpdate(-needMoney);
+
+
+        Vector3 spawnPosition =
+            NowPreviewPrefab.transform.position;
+
+        Quaternion spawnRotation =
+            NowPreviewPrefab.transform.rotation;
+
+
+        GameObject siteObj =
+            Instantiate(
+                Site,
+                spawnPosition,
+                Site.transform.rotation
+            );
+
+
+        constManager.waitingSite.Add(
+            siteObj
+        );
+
+
+        constManager.ConstractionSetting(
+            siteObj,
+            buildingNowType,
+            spawnPosition,
+            spawnRotation
+        );
+
+
+        SiteGenModeOff();
+    }
+
+
+    // =========================================================
+    // 指定オブジェクトにRaycast
+    // =========================================================
+
+    private bool TryRaycastObject(
+        GameObject target,
+        Ray ray,
+        out RaycastHit closestHit)
+    {
+        closestHit =
+            new RaycastHit();
+
+
+        if (target == null)
+            return false;
+
+
+        Collider[] colliders =
+            target.GetComponentsInChildren<Collider>();
+
+
+        bool found = false;
+        float closestDistance =
+            Mathf.Infinity;
+
+
+        foreach (Collider collider in colliders)
+        {
+            if (!collider.enabled)
+                continue;
+
+
+            if (collider.Raycast(
+                    ray,
+                    out RaycastHit hit,
+                    500f))
+            {
+                if (hit.distance <
+                    closestDistance)
+                {
+                    closestDistance =
+                        hit.distance;
+
+                    closestHit = hit;
+
+                    found = true;
+                }
+            }
+        }
+
+
+        return found;
+    }
+
+
+    // =========================================================
+    // PC / スマホ共通入力
+    // =========================================================
+
+    private bool TryGetPointerPosition(
+        out Vector2 position)
+    {
+        position = Vector2.zero;
+
+
+        // スマホ
+        if (Input.touchCount > 0)
+        {
+            Touch touch =
+                Input.GetTouch(0);
+
+
+            // UIを触っているなら
+            // 建物を動かさない
+            if (EventSystem.current != null &&
+                EventSystem.current
+                    .IsPointerOverGameObject(
+                        touch.fingerId
+                    ))
+            {
+                return false;
+            }
+
+
+            if (touch.phase ==
+                    TouchPhase.Ended ||
+                touch.phase ==
+                    TouchPhase.Canceled)
+            {
+                return false;
+            }
+
+
+            position =
+                touch.position;
+
+            return true;
+        }
+
+
+        // 実機スマホで
+        // 指を触っていないときは更新しない
+        if (Application.isMobilePlatform)
+        {
+            return false;
+        }
+
+
+        // PC
+        if (EventSystem.current != null &&
+            EventSystem.current
+                .IsPointerOverGameObject())
+        {
+            return false;
+        }
+
+
+        position =
+            Input.mousePosition;
+
+        return true;
     }
 }

@@ -36,10 +36,43 @@ public class Skip : MonoBehaviour
 
     public int areaMask = NavMesh.AllAreas;
     public NavMeshSurface surface;
-    void Start()
+    private bool hasExecuted = false;
+
+    private IEnumerator Start()
     {
-        Invoke(nameof(SkipBuilding),0.2f);
-        Invoke(nameof(SkipJob), 0.2f);
+        if (!SkipActive)
+            yield break;
+
+        // 他ManagerのStartを待つ
+        yield return new WaitForSeconds(0.2f);
+
+        ExecuteSkip();
+    }
+
+    public void ExecuteSkip()
+    {
+        if (!SkipActive || hasExecuted)
+            return;
+
+        hasExecuted = true;
+
+        SkipBuilding();
+        SkipJob();
+
+        // Runtimeで追加した建物をNavMeshへ反映
+        Physics.SyncTransforms();
+
+        if (surface != null)
+        {
+            surface.BuildNavMesh();
+        }
+
+        if (uicontroller != null)
+        {
+            uicontroller.CloseLoadingUI();
+        }
+
+        Debug.Log("Skip completed.");
     }
     void SkipBuilding()
     {
@@ -47,7 +80,10 @@ public class Skip : MonoBehaviour
         {
             //constableに追加
             ConstBuildingType[] SkipConstable 
-                = { ConstBuildingType.farmbuilding, ConstBuildingType.mine, ConstBuildingType.huntercabin,ConstBuildingType.fishmancabin,
+                = { ConstBuildingType.farmbuilding,
+                    ConstBuildingType.mine, 
+                    ConstBuildingType.huntercabin,
+                    ConstBuildingType.fishmancabin,
                     ConstBuildingType.market};
             constructioinManager.ConstableBuildingType.AddRange(SkipConstable);
 
@@ -59,14 +95,17 @@ public class Skip : MonoBehaviour
             Vector3 Buildingpos = WoodCabin1.transform.position;
             foreach (ConstBuildingType type in constructioinManager.ConstableBuildingType)
             {
+                //SKIPで生成しないtype
                 if (type == ConstBuildingType.road || type == ConstBuildingType.road2 || type == ConstBuildingType.farm_block
                     || type == ConstBuildingType.farmbuilding　|| type == ConstBuildingType.market)
                 {
                     continue;
                 }
-                //HunterCabinだけ生成
+
+                //生成するもののprefab
                 GameObject prefab = constructioinManager.constbuildingmaster.GetData(type).conbuildingPrefab;
-                if (type == ConstBuildingType.House)
+
+                if (type == ConstBuildingType.House)  //家
                 {
 
                     for (int i = 0; i < 3; i++)
@@ -75,39 +114,33 @@ public class Skip : MonoBehaviour
                         GameObject housebuilding = Instantiate(prefab, Housespos, Quaternion.LookRotation(cameraDirection), HouseParent.transform);
                         houseandvillager.HouseGenerated(housebuilding);
                         moneyManager.GenerateCoin(housebuilding);
-
                     }
 
                 }
-                else
+                else　　　　　　　　　　　　　　　　　　//職業建物
                 {
                     //最初から置いてある木こり小屋を基準にしてスキップの建物を並べる
-                    Buildingpos.z -= 5f;
+                    Buildingpos.z -= 10f;
 
                     Vector3 pos = Buildingpos;
-
-                    if (type == ConstBuildingType.sawmill || type == ConstBuildingType.mine
-                        || type == ConstBuildingType.huntercabin || type == ConstBuildingType.fishmancabin)
-                    {
-                        pos.y += 1.2f;
-                    }
                     GameObject building = Instantiate(prefab, pos, prefab.transform.rotation, buildingParent.transform);
                     
                     //ConstBuildingTypeからBuildingTypeへの変換処理
                     BuildingType btype = (BuildingType)System.Enum.Parse(typeof(BuildingType), type.ToString());
  
                     BuildingData data = building.GetComponent<BuildingData>();
-                    data.DataInitialize(ConstCategory.JobBuilding, btype, jobbuildingmaster.GetDataByBuilding(btype).jobType, building, jobbuildingmaster,null);
+                    data.DataInitialize(ConstCategory.JobBuilding,
+                                         btype,
+                                         jobbuildingmaster.GetDataByBuilding(btype).jobType,
+                                         building,
+                                         jobbuildingmaster,
+                                         null);
                     buildingManager.JobBuildings.Add(building);
                     worldSpaceUIController.GenerateWorldSpaceBuildingUI(Buildingpos, building);
 
                 }
 
             }
-
-
-            surface.BuildNavMesh();
-            uicontroller.CloseLoadingUI();
         }
     }
     void SkipJob()
@@ -120,6 +153,86 @@ public class Skip : MonoBehaviour
 
         }
     }
-    
-  
+
+    public List<Vector3> GetReservedBuildingPositions()
+    {
+        List<Vector3> positions =
+            new List<Vector3>();
+
+
+        // SkipBuilding() で追加されるものも含めて
+        // 実際の建築予定リストを再現する
+        List<ConstBuildingType> types =
+            new List<ConstBuildingType>(
+                constructioinManager.ConstableBuildingType
+            );
+
+
+        ConstBuildingType[] skipConstable =
+        {
+        ConstBuildingType.farmbuilding,
+        ConstBuildingType.mine,
+        ConstBuildingType.huntercabin,
+        ConstBuildingType.fishmancabin,
+        ConstBuildingType.market
+    };
+
+
+        foreach (ConstBuildingType type
+                 in skipConstable)
+        {
+            if (!types.Contains(type))
+            {
+                types.Add(type);
+            }
+        }
+
+
+        Vector3 housePos =
+            House1.transform.position;
+
+        Vector3 buildingPos =
+            WoodCabin1.transform.position;
+
+
+        foreach (ConstBuildingType type
+                 in types)
+        {
+            // Skipで生成しないもの
+            if (type == ConstBuildingType.road ||
+                type == ConstBuildingType.road2 ||
+                type == ConstBuildingType.farm_block ||
+                type == ConstBuildingType.farmbuilding ||
+                type == ConstBuildingType.market)
+            {
+                continue;
+            }
+
+
+            // 家3軒
+            if (type == ConstBuildingType.House)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    housePos.x += 3f;
+
+                    positions.Add(
+                        housePos
+                    );
+                }
+            }
+            else
+            {
+                // 職業建物
+                buildingPos.z -= 10f;
+
+                positions.Add(
+                    buildingPos
+                );
+            }
+        }
+
+
+        return positions;
+    }
 }
