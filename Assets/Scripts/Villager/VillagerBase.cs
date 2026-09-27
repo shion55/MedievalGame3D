@@ -173,7 +173,7 @@ public class VillagerBase : MonoBehaviour
 
         agent.isStopped = false;
 
-        BuildingAccessPoints accessPoints =target.GetComponent<BuildingAccessPoints>();
+        BuildingAccessPoints accessPoints =target.GetComponentsInChildren<BuildingAccessPoints>()[0];
 
         if (accessPoints != null &&
             accessPoints.Entrance != null)
@@ -394,7 +394,7 @@ public class VillagerBase : MonoBehaviour
         yield return new WaitForSeconds(5);//Å™Ç≈ê›íËÇµÇƒÇ¢ÇÈà⁄ìÆéûä‘Ç‡ä‹Çﬁ
         if(Random.Range(0f,1f) > 0.5f)//50ÅìÇÃämó¶Ç≈ãxåeèIóπ
         {
-            BuildingData data = leisure.GetComponent<BuildingData>();
+            BuildingData data = leisure.GetComponentsInChildren<BuildingData>()[0];
             data.OccupantVillagers.Remove(this.gameObject);
             anim.Play(AnimType.Walk);
             Transform entrance = leisure.transform.Find("Entrance");
@@ -511,7 +511,7 @@ public class VillagerBase : MonoBehaviour
 
         foreach (GameObject building in buildiingmanager.JobBuildings)
         {
-            BuildingData data = building.GetComponent<BuildingData>();
+            BuildingData data = building.GetComponentsInChildren<BuildingData>()[0];
             int MatAmount = data.storage.materials[type];
             
             if (MatAmount > maxMatAmount)

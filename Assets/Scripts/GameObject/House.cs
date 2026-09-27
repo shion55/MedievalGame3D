@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class House : MonoBehaviour
 {
+    public GameObject myobj;
     public GameObject Coin;
     MoneyManager moneyManager;
     private int paytaxduration;

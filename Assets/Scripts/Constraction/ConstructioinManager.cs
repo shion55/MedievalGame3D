@@ -188,7 +188,7 @@ public class ConstructioinManager : MonoBehaviour
         BuildingType type = (BuildingType)System.Enum.Parse(typeof(BuildingType), buildingType.ToString());
 
         Job jobtype = jobbuildingmaster.GetDataByBuilding(type).jobType;
-        BuildingData data = building.GetComponent<BuildingData>();
+        BuildingData data = building.GetComponentsInChildren<BuildingData>()[0];
         data.DataInitialize(ConstCategory.JobBuilding, type, jobbuildingmaster.GetDataByBuilding(type).jobType, building, jobbuildingmaster, null);
         buildingManager.JobBuildings.Add(building);
         Vector3 pos = building.transform.position;
@@ -249,7 +249,7 @@ public class ConstructioinManager : MonoBehaviour
             MaterialType.Venison,
             MaterialType.Fish
         };
-        BuildingData data = building.GetComponent<BuildingData>();
+        BuildingData data = building.GetComponentsInChildren<BuildingData>()[0];
         data.DataInitialize(ConstCategory.AmuseBuilding, type, null, building, null,materialTypes);
         buildingManager.AmuseBuildings.Add(building);
     }

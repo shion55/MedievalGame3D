@@ -22,6 +22,8 @@ public class UIController : MonoBehaviour
 　　public Cameracont cameracont;  //UIを開いている間はカメラ移動を止める
     public ObjectOutlineManager outlinemanager;//villagerにスポットを当てる用
     public ObjectTapHandler tapHandler;
+    public DestroyObjectHandler destroyHandler;
+
 
     [Header("JobAndBuildingマスターデータ")]
     public JobBuildingMasterData jobbuildingmaster;
@@ -47,8 +49,10 @@ public class UIController : MonoBehaviour
     public GameObject VillagerOverViewUI;     //村人と職業の全体UI
     public GameObject VillOvewViewVillagerPrefab; //村人と職業の一人分のprefab
     public Transform VillagerOverViewContetPa;//↑のprefabが入っている親
-    
 
+    [Header("破壊モードUI")]
+    public GameObject DestroyModeButton;
+    public GameObject DestroyModeCloseButton;
 
     [Header("お金")]
     //お金表示
@@ -93,6 +97,7 @@ public class UIController : MonoBehaviour
         permanentUI = new List<GameObject> { 
           ConstMenuOpenButton,
           OpenVillagerOverViewUIButton,
+          DestroyModeButton,
           settingUICont.SettingButton
         };
     }
@@ -423,7 +428,7 @@ public class UIController : MonoBehaviour
     {
         buildingUIcont.BuildingUI.SetActive(false);
         tapHandler.JobChangeHouseTap = true;
-        BuildingData data = building.GetComponent<BuildingData>();
+        BuildingData data = building.GetComponentsInChildren<BuildingData>()[0];
         Job job = data.buildingjob;
         cameracont.CameraContActive = true;  //HireMode中はカメラを動かせるようにする
         buildinghirevillagerUIcont.HireJob = job;
@@ -442,7 +447,29 @@ public class UIController : MonoBehaviour
     }
     #endregion
 
+    #region 破壊
+    public void OpenDestroyModeUI()
+    {
+        ClosepermanentUI();
 
+        InformationButton.SetActive(false);
+
+        DestroyModeCloseButton.SetActive(true);
+    }
+    public void CloseDestroyModeUI()
+    {
+        ReActivepermanentUI();
+
+        // 警告が存在する場合だけ警告ボタンを戻す
+        if (NotEnoughWarnings.Count > 0 ||
+            PathWarnings.Count > 0)
+        {
+            InformationButton.SetActive(true);
+        }
+
+        DestroyModeCloseButton.SetActive(false);
+    }
+    #endregion
     #region ローディング
     public void OpenLoadingUI()
     {

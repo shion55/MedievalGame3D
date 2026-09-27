@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3081962558115794181}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Entrance
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,9 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1028821245610467971}
-  - component: {fileID: -7406321039405367536}
-  - component: {fileID: 1035713689113641680}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SawmillRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -66,40 +64,6 @@ Transform:
   - {fileID: 3081962558115794181}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-7406321039405367536
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6563516281276897743}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e35cd1f6828e9748bce277f0421ed49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  building: {fileID: 0}
-  buildingcategory: 0
-  buildingType: 0
-  buildingjob: 0
-  workerLimit: 0
-  workers: []
-  OccupantVillagers: []
-  capacity: 0
-  amuseneedmaterials: 
---- !u!114 &1035713689113641680
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6563516281276897743}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c0b5972563096b49b18c00a021d9fd5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  entrance: {fileID: 3081962558115794181}
 --- !u!1001 &3747695679487791073
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -172,6 +136,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: sawmill_medieval_low__0416142740_texture
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: d39422838e3c8dc4a97442d2510ace13, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: d39422838e3c8dc4a97442d2510ace13, type: 3}
+      propertyPath: m_TagString
+      value: Building
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -179,6 +151,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d39422838e3c8dc4a97442d2510ace13, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8393450856745592707}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d39422838e3c8dc4a97442d2510ace13, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7565887665349771324}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d39422838e3c8dc4a97442d2510ace13, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6078203153044679253}
   m_SourcePrefab: {fileID: 100100000, guid: d39422838e3c8dc4a97442d2510ace13, type: 3}
 --- !u!4 &3713433535434958858 stripped
 Transform:
@@ -211,3 +189,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.0200186, y: 0.013484789, z: 0.016626678}
   m_Center: {x: -0.0000041001476, y: -0.000011575175, z: -0.000020809937}
+--- !u!114 &7565887665349771324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4090135480831570608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e35cd1f6828e9748bce277f0421ed49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  building: {fileID: 0}
+  buildingcategory: 0
+  buildingType: 0
+  buildingjob: 0
+  workerLimit: 0
+  workers: []
+  OccupantVillagers: []
+  capacity: 0
+  amuseneedmaterials: 
+--- !u!114 &6078203153044679253
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4090135480831570608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c0b5972563096b49b18c00a021d9fd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entrance: {fileID: 3081962558115794181}

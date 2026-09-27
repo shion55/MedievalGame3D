@@ -117,7 +117,7 @@ public abstract class JobBase : MonoBehaviour, IJob
         var rand = new System.Random();
         var index = rand.Next(VB.buildiingmanager.AmuseBuildings.Count-1);
         GameObject building = VB.buildiingmanager.AmuseBuildings[index];
-        BuildingData data = building.GetComponent<BuildingData>();
+        BuildingData data = building.GetComponentsInChildren<BuildingData>()[0];
         if (!data.IsVacant)
         {
             DebugController.Log("NoVacantCancel");

@@ -134,8 +134,8 @@ public class Skip : MonoBehaviour
                     //ConstBuildingType‚©‚çBuildingType‚Ö‚Ì•ÏŠ·ˆ—
                     BuildingType btype = (BuildingType)System.Enum.Parse(typeof(BuildingType), type.ToString());
  
-                    BuildingData data = building.GetComponent<BuildingData>();
-                    data.DataInitialize(ConstCategory.JobBuilding,
+                    BuildingData[] data = building.GetComponentsInChildren<BuildingData>();
+                    data[0].DataInitialize(ConstCategory.JobBuilding,
                                          btype,
                                          jobbuildingmaster.GetDataByBuilding(btype).jobType,
                                          building,

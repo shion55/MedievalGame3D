@@ -9,9 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3683941435719876494}
-  - component: {fileID: 558420124667619649}
-  - component: {fileID: 7909127899714918365}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FishManCabinRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -34,40 +32,6 @@ Transform:
   - {fileID: 3887283184183168816}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &558420124667619649
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4306206474822392282}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e35cd1f6828e9748bce277f0421ed49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  building: {fileID: 0}
-  buildingcategory: 0
-  buildingType: 0
-  buildingjob: 0
-  workerLimit: 0
-  workers: []
-  OccupantVillagers: []
-  capacity: 0
-  amuseneedmaterials: 
---- !u!114 &7909127899714918365
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4306206474822392282}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c0b5972563096b49b18c00a021d9fd5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  entrance: {fileID: 8466190458296764583}
 --- !u!1001 &8963315352345835617
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -123,13 +87,40 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 984244230918127449, guid: afecc186cad195c4b923f6a88d06ed53, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7214375860371065035}
   m_SourcePrefab: {fileID: 100100000, guid: afecc186cad195c4b923f6a88d06ed53, type: 3}
 --- !u!4 &3887283184183168816 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5302549474188900177, guid: afecc186cad195c4b923f6a88d06ed53, type: 3}
   m_PrefabInstance: {fileID: 8963315352345835617}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &5298251698550694667 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3883013325773708138, guid: afecc186cad195c4b923f6a88d06ed53, type: 3}
+  m_PrefabInstance: {fileID: 8963315352345835617}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8200117291669178168 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 984244230918127449, guid: afecc186cad195c4b923f6a88d06ed53, type: 3}
+  m_PrefabInstance: {fileID: 8963315352345835617}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7214375860371065035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8200117291669178168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c0b5972563096b49b18c00a021d9fd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entrance: {fileID: 8466190458296764583}
+  fishingPoint: {fileID: 5298251698550694667}
 --- !u!4 &8466190458296764583 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 655806525502419142, guid: afecc186cad195c4b923f6a88d06ed53, type: 3}

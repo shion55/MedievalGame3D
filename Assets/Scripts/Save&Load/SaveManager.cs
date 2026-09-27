@@ -314,7 +314,7 @@ public class SaveManager : MonoBehaviour
 
 
         BuildingData buildingData =
-            building.GetComponent<BuildingData>();
+            building.GetComponentsInChildren<BuildingData>()[0];
 
 
         if (buildingData == null)
@@ -657,7 +657,7 @@ public class SaveManager : MonoBehaviour
 
 
                 BuildingData buildingData =
-                    building.GetComponent<BuildingData>();
+                    building.GetComponentsInChildren<BuildingData>()[0];
 
                 buildingData.DataInitialize(
                     ConstCategory.JobBuilding,
@@ -731,7 +731,7 @@ public class SaveManager : MonoBehaviour
 
 
                 BuildingData buildingData =
-                    building.GetComponent<BuildingData>();
+                    building.GetComponentsInChildren<BuildingData>()[0];
 
 
                 // -------------------------
@@ -848,7 +848,7 @@ public class SaveManager : MonoBehaviour
             // =====================================================
 
             BuildingData loadedData =
-                building.GetComponent<BuildingData>();
+                building.GetComponentsInChildren<BuildingData>()[0];
 
 
             if (loadedData != null &&
@@ -936,7 +936,7 @@ public class SaveManager : MonoBehaviour
 
 
             BuildingData buildingData =
-                building.GetComponent<BuildingData>();
+                building.GetComponentsInChildren<BuildingData>()[0];
 
 
             if (buildingData != null)
@@ -1126,9 +1126,7 @@ public class SaveManager : MonoBehaviour
             if (jobBuilding != null)
             {
                 BuildingData buildingData =
-                    jobBuilding.GetComponent<
-                        BuildingData
-                    >();
+                    jobBuilding.GetComponentsInChildren<BuildingData>()[0];
 
 
                 if (buildingData != null)

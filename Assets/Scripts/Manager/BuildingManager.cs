@@ -26,14 +26,14 @@ public class BuildingManager : MonoBehaviour
     public JobBuildingMasterData jobbuildingmaster;
     void Start()
     {
-        BuildingData castledata = Castle.GetComponent<BuildingData>();
+        BuildingData castledata = Castle.GetComponentsInChildren<BuildingData>()[0];
         castledata.DataInitialize(ConstCategory.JobBuilding, BuildingType.castle, Job.Carrier,Castle, jobbuildingmaster,null);
         JobBuildings.Add(Castle);
 
         //ç≈èâÇÃñÿÇ±ÇËè¨âÆÇÃê›íË
         foreach (GameObject cabin in woodmanCabins) {
 
-            BuildingData buildingdata = cabin.GetComponent<BuildingData>();
+            BuildingData buildingdata = cabin.GetComponentsInChildren<BuildingData>()[0];
             buildingdata.DataInitialize(ConstCategory.JobBuilding, BuildingType.woodcabin, Job.WoodCutter, cabin, jobbuildingmaster,null);
             JobBuildings.Add(cabin);
             worldSpaceUIController.GenerateWorldSpaceBuildingUI(cabin.transform.position, cabin);
@@ -43,14 +43,14 @@ public class BuildingManager : MonoBehaviour
     }
     public void BuildingStorageUpdate(GameObject building,MaterialType type,int  value)
     {
-        BuildingData data = building.GetComponent<BuildingData>();
+        BuildingData data = building.GetComponentsInChildren<BuildingData>()[0];
         data.storage.AddMaterial(type, value);
     }
     public int MaterialAllAmountCheck(List<MaterialType> types) { 
          int amount = 0; 
         foreach(GameObject bd in JobBuildings)
         {
-            BuildingData data = bd.GetComponent<BuildingData>();
+            BuildingData data = bd.GetComponentsInChildren<BuildingData>()[0];
             foreach(var mat  in types)
             {
                 amount += data.storage.materials[mat];
@@ -58,7 +58,7 @@ public class BuildingManager : MonoBehaviour
         }
         foreach (GameObject bd in AmuseBuildings)
         {
-            BuildingData data2 = bd.GetComponent<BuildingData>();
+            BuildingData data2 = bd.GetComponentsInChildren<BuildingData>()[0];
             foreach (var mat2 in types)
             {
                 amount += data2.storage.materials[mat2];

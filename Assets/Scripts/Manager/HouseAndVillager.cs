@@ -44,4 +44,95 @@ public class HouseAndVillager : MonoBehaviour
         villager.GetComponent<VillagerBase>().MyIndex = villagers.IndexOf(villager) ;
         jobchangeuicont.GenerateHireHousePopUI(house.transform.position, house);//‰Æ‚Ìã‚Ìjobchangepop
     }
+    public void RemoveHouse(GameObject house)
+    {
+        if (!housevillagers.TryGetValue(
+                house,
+                out List<GameObject> residents))
+        {
+            return;
+        }
+
+        // foreach’†‚ÉƒŠƒXƒg‚ğ‘‚«Š·‚¦‚é‚Ì‚ÅƒRƒs[
+        List<GameObject> residentsCopy =
+            new List<GameObject>(residents);
+
+
+        foreach (GameObject villager in residentsCopy)
+        {
+            if (villager == null)
+                continue;
+
+            VillagerBase vb =
+                villager.GetComponent<VillagerBase>();
+
+
+            // Eê‚ÉŠ‘®‚µ‚Ä‚¢‚é‚È‚ç
+            // ‚»‚ÌŒš•¨‚Ìworkers‚©‚çŠO‚·
+            if (vb != null &&
+                vb.MyJobBuilding != null)
+            {
+                BuildingData buildingData =
+                    vb.MyJobBuilding
+                        .GetComponentInChildren<BuildingData>();
+
+                if (buildingData != null)
+                {
+                    buildingData.workers.Remove(
+                        villager
+                    );
+                }
+            }
+
+
+            // E‹ÆŠÇ—‚©‚çíœ
+            if (statusManager.villagersjob.TryGetValue(
+                    villager,
+                    out Job job))
+            {
+                statusManager.villagersjob.Remove(
+                    villager
+                );
+
+                if (statusManager
+                    .jobandvillagers
+                    .TryGetValue(
+                        job,
+                        out List<GameObject> jobVillagers))
+                {
+                    jobVillagers.Remove(
+                        villager
+                    );
+                }
+            }
+
+
+            // ‰Æ‚Æ‚Ì‘Î‰ŠÖŒW‚ğíœ
+            villagerhouse.Remove(
+                villager
+            );
+
+            villagers.Remove(
+                villager
+            );
+
+
+            Destroy(villager);
+        }
+
+        //ã‚ÌŒÙ—ppopup‚ğÁ‚·
+        jobchangeuicont.RemoveHireHousePopUI(house);
+
+        // ‰Æ‘¤‚Ì“o˜^íœ
+        housevillagers.Remove(
+            house
+        );
+
+        houses.Remove(
+            house
+        );
+
+
+        Destroy(house);
+    }
 }

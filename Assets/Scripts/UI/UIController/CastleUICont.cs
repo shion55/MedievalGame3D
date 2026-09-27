@@ -29,7 +29,7 @@ public class CastleUICont : MonoBehaviour
             GameObject matLabel = Instantiate(MaterialStorage_CastlePrefab, CastleStoragePanelTransform);
             MaterialStorageUIPrefab uiprefab = matLabel.GetComponent<MaterialStorageUIPrefab>();
             uiprefab.MaterialImage.sprite = UC.MaterialspriteData.GetSprite(materialType);
-            BuildingData data = UC.buildingManager.Castle.GetComponent<BuildingData>();
+            BuildingData data = UC.buildingManager.Castle.GetComponentsInChildren<BuildingData>()[0];
             
             uiprefab.StorageText.text = data.storage.materials[materialType].ToString();
         }

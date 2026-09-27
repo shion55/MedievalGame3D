@@ -23,7 +23,9 @@ public class Fisher : JobBase
         switch (_state) {
             case State.Gobuilding:
                 VB.agent.enabled = false;
-                Transform fishingpoint = myJobBuilding.transform.Find("FishingPoint");
+                BuildingAccessPoints accessPoints =myJobBuilding.GetComponentInChildren<BuildingAccessPoints>();
+
+                Transform fishingpoint =accessPoints.FishingPoint;
                 this.gameObject.transform.position = fishingpoint.position;//íﬁÇËè¨âÆÇÃçbî¬Ç…à⁄ìÆ
                 this.gameObject.transform.Rotate(0, -90, 0);
                 StartCoroutine(FishingRoutine());
@@ -48,7 +50,7 @@ public class Fisher : JobBase
         if (VB.jobchangeflag)
         {
             VB.MRender.enabled = false;
-            Transform entrance = myJobBuilding.transform.Find("Entrance");
+            Transform entrance = myJobBuilding.GetComponentInChildren<BuildingAccessPoints>().Entrance ;
             this.gameObject.transform.position = entrance.position;
             VB.agent.enabled = true;
             VB.JobChangeExecute();
@@ -63,7 +65,7 @@ public class Fisher : JobBase
         if (VB.jobchangeflag)
         {
             VB.MRender.enabled = false;
-            Transform entrance = myJobBuilding.transform.Find("Entrance");
+            Transform entrance = myJobBuilding.GetComponentInChildren<BuildingAccessPoints>().Entrance;
             this.gameObject.transform.position = entrance.position;
             VB.agent.enabled = true;
             VB.JobChangeExecute();
@@ -84,7 +86,7 @@ public class Fisher : JobBase
     {
         base.ReStartMyJob();
         VB.agent.enabled = false;
-        Transform fishingpoint = myJobBuilding.transform.Find("FishingPoint");
+        Transform fishingpoint = myJobBuilding.GetComponentInChildren<BuildingAccessPoints>().FishingPoint;
         this.gameObject.transform.position = fishingpoint.position;//íﬁÇËè¨âÆÇÃçbî¬Ç…à⁄ìÆ
         this.gameObject.transform.Rotate(0, -90, 0);
         StartCoroutine(FishingRoutine());

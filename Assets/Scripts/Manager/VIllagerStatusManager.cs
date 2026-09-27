@@ -37,12 +37,12 @@ public class VIllagerStatusManager : MonoBehaviour
             //建物
             if (VB.MyJobBuilding)//現在の建物があったら建物とデータから村人を消す
             {
-               BuildingData data = VB.MyJobBuilding.GetComponent<BuildingData>();
+               BuildingData data = VB.MyJobBuilding.GetComponentsInChildren<BuildingData>()[0];
                 data.workers.Remove(villager);
             }
 
             if (jobBuilding != null) {//就職する建物あったら
-                BuildingData data = jobBuilding.GetComponent<BuildingData>();
+                BuildingData data = jobBuilding.GetComponentsInChildren<BuildingData>()[0];
                 data.workers.Add(villager);
             }
             VB.jobchangeflag = true;

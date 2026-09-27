@@ -70,6 +70,18 @@ public class BuildingHireVillagerUICont : MonoBehaviour
             hirebutton.onClick.AddListener(() => HireVillager(villager));
         }
     }
+    public void RemoveHireHousePopUI(GameObject house)
+    {
+        if (HouseAndHirePopDic.TryGetValue(
+                house,
+                out GameObject popup))
+        {
+            Destroy(popup);
 
-   
+            HouseAndHirePopDic.Remove(
+                house
+            );
+        }
+    }
+
 }

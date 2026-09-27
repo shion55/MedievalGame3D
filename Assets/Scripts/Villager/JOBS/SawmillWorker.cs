@@ -26,7 +26,7 @@ public class SawmillWorker : JobBase
             VA.AcceDisActive(VillagerAcceType.Wood);
             IsGoMyBuilding = false;
             
-            BuildingData data = Building.GetComponent<BuildingData>();
+            BuildingData data = Building.GetComponentsInChildren<BuildingData>()[0];
             if (data.storage.materials[MaterialType.Wood] > 0)
             {
                StartProduce();
@@ -98,7 +98,7 @@ public class SawmillWorker : JobBase
     }
     public override void ReStartMyJob()
     {
-        BuildingData data = myJobBuilding.GetComponent<BuildingData>();
+        BuildingData data = myJobBuilding.GetComponentsInChildren<BuildingData>()[0];
         if (data.storage.materials[MaterialType.Wood] > 0)
         {
             StartProduce();
@@ -120,7 +120,7 @@ public class SawmillWorker : JobBase
     private IEnumerator NoMaterialWaiting()
     {
         yield return new WaitForSeconds(0.5f);
-        BuildingData data = myJobBuilding.GetComponent<BuildingData>();
+        BuildingData data = myJobBuilding.GetComponentsInChildren<BuildingData>()[0];
         while (true)
         {
             if (VB.jobchangeflag)

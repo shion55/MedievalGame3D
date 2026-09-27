@@ -11,6 +11,7 @@ public class ObjectTapHandler : MonoBehaviour
     public UIController uiController;
     public ObjectOutlineManager outlineManager;
     private Camera mainCamera;
+    public DestroyObjectHandler destroyObjectHandler;
 
     public bool JobChangeHouseTap = false;
     void Start()
@@ -19,6 +20,11 @@ public class ObjectTapHandler : MonoBehaviour
     }
     void Update()
     {
+        if (destroyObjectHandler != null &&
+       destroyObjectHandler.IsDestroyMode)
+        {
+            return;
+        }
         if (JobChangeHouseTap)
         {
             CheckHouseTapped();
@@ -73,6 +79,7 @@ public class ObjectTapHandler : MonoBehaviour
     }
     private void BuildingIsTapped(GameObject building)
     {
+        Debug.Log("buildingistapped" + building.name);
         uiController.OpenUIFromTap(building, UIENUM.Building);
     }
     private void CastleIsTapped(GameObject castle)

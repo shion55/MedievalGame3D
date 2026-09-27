@@ -9,9 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9146334168313452305}
-  - component: {fileID: 2807275685691142155}
-  - component: {fileID: 2390299124736579203}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HunterCabinRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -34,40 +32,6 @@ Transform:
   - {fileID: 5632955407818111823}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2807275685691142155
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8886945058179167082}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e35cd1f6828e9748bce277f0421ed49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  building: {fileID: 0}
-  buildingcategory: 0
-  buildingType: 0
-  buildingjob: 0
-  workerLimit: 0
-  workers: []
-  OccupantVillagers: []
-  capacity: 0
-  amuseneedmaterials: 
---- !u!114 &2390299124736579203
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8886945058179167082}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c0b5972563096b49b18c00a021d9fd5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  entrance: {fileID: 624163045247426807}
 --- !u!1001 &911381435801746272
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -76,6 +40,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 9146334168313452305}
     m_Modifications:
+    - target: {fileID: 4207601205945875504, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 4794547511090217007, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -120,17 +88,66 @@ PrefabInstance:
       propertyPath: m_Name
       value: HunterCabin
       objectReference: {fileID: 0}
+    - target: {fileID: 5314941504940432021, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: -436154730199398245, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5314941504940432021, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4899821748526267823}
+    - targetCorrespondingSourceObject: {fileID: 5314941504940432021, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5248811005600576315}
   m_SourcePrefab: {fileID: 100100000, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
 --- !u!4 &624163045247426807 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 291775673519774615, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
   m_PrefabInstance: {fileID: 911381435801746272}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5001132718557061621 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5314941504940432021, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
+  m_PrefabInstance: {fileID: 911381435801746272}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4899821748526267823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5001132718557061621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c0b5972563096b49b18c00a021d9fd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entrance: {fileID: 624163045247426807}
+--- !u!114 &5248811005600576315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5001132718557061621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e35cd1f6828e9748bce277f0421ed49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  building: {fileID: 0}
+  buildingcategory: 0
+  buildingType: 0
+  buildingjob: 0
+  workerLimit: 0
+  workers: []
+  OccupantVillagers: []
+  capacity: 0
+  amuseneedmaterials: 
 --- !u!4 &5632955407818111823 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4794547511090217007, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}

@@ -172,7 +172,7 @@ public class Carrier : JobBase
         Dictionary<GameObject,List<MaterialType> >  Empty_Buildings_Materials = new Dictionary<GameObject,List<MaterialType>>();
         foreach (GameObject building in VB.buildiingmanager.AmuseBuildings)
         {
-            BuildingData data = building.GetComponent<BuildingData>();
+            BuildingData data = building.GetComponentsInChildren<BuildingData>()[0];
             Storage storage = data.storage;
             List<MaterialType> ts = new List<MaterialType>();
             foreach (var mtype in data.amuseneedmaterials)//必要なマテリアルを建物のストレージと参照
@@ -210,7 +210,7 @@ public class Carrier : JobBase
                 continue;
             };
             
-            BuildingData data = building.GetComponent<BuildingData>();
+            BuildingData data = building.GetComponentsInChildren<BuildingData>()[0];
             Storage storage = data.storage;
             foreach (var str in storage.materials)
             {

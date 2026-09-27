@@ -94,7 +94,7 @@ public class HouseUICont : MonoBehaviour
         //Œš•¨‚ª‚ ‚éE‹Æ
         foreach (GameObject building in UC.buildingManager.JobBuildings)
         {
-            BuildingData data = building.GetComponent<BuildingData>();
+            BuildingData data = building.GetComponentsInChildren<BuildingData>()[0];
             if (data.IsRecruiting && !data.workers.Contains(villager))//A‹Æ’†‚ÌŒš•¨‚Í‘I‘ğˆ‚©‚çÁ‚·
             {
                 GameObject panel = Instantiate(JobChangeScrollContentPrefab, JobChangeScrollContentPa);

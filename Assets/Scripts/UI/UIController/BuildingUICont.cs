@@ -31,7 +31,7 @@ public class BuildingUICont : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-        BuildingData data = building.GetComponent<BuildingData>();
+        BuildingData data = building.GetComponentsInChildren<BuildingData>()[0];
         BuildingType buildtype = data.buildingType;　　　//GameObjectからenum(その建物のtype)を取得
         List<MaterialType> MatType = UC.jobbuildingmaster.GetDataByBuilding(buildtype).producedMaterials;//その建物のマテリアルタイプ取得(これは種類なのでenumから取得)
         foreach (MaterialType matType in MatType)

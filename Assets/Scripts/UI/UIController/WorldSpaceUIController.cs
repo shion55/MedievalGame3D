@@ -26,10 +26,11 @@ public class WorldSpaceUIController : MonoBehaviour
         buildingandprogressBars.Add(building,progressbar);//建物と進捗UIの辞書に追加
 
         
-        BuildingType buildingType = building.GetComponent<BuildingData>().buildingType;//建物の種類を取得
+        BuildingType buildingType = building.GetComponentsInChildren<BuildingData>()[0].buildingType;//建物の種類を取得
         List<MaterialType> mattypes = jobBuildingMaster.GetDataByBuilding(buildingType).producedMaterials;//↑からマテリアルの種類を取得
         List<GameObject> PopUps = new List<GameObject>();//ポップアップのリスト
         buildingandMaterialPopup.Add(building, new Dictionary<MaterialType, GameObject>());
+       
         foreach (MaterialType mattype in mattypes) {
             GameObject MatPopup = Instantiate(ProducedMatPopupPrefab, genposition, Quaternion.identity, MatPopupParent);
             buildingandMaterialPopup[building].Add(mattype,MatPopup);//建物と マテリアルとポップアップの辞書 を 辞書に追加
@@ -65,5 +66,26 @@ public class WorldSpaceUIController : MonoBehaviour
         popup.transform.DOMoveY(popup.transform.position.y + 1f,PopupDuration).OnComplete(() => popup.SetActive(false));
       
     }
+    public void RemoveBuildingUI(GameObject building)
+    {
+        if (buildingandprogressBars.TryGetValue(
+            building,
+            out GameObject progressBar))
+        {
+            Destroy(progressBar);
+            buildingandprogressBars.Remove(building);
+        }
 
+        if (buildingandMaterialPopup.TryGetValue(
+            building,
+            out Dictionary<MaterialType, GameObject> popups))
+        {
+            foreach (GameObject popup in popups.Values)
+            {
+                Destroy(popup);
+            }
+
+            buildingandMaterialPopup.Remove(building);
+        }
+    }
 }
