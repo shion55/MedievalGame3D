@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6673906835189587973}
   - component: {fileID: 957728322585838277}
   - component: {fileID: 7271387561917377062}
+  - component: {fileID: -8806932094678943976}
   m_Layer: 7
   m_Name: PineNoLeaf
   m_TagString: Untagged
@@ -103,3 +104,24 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: -0.034, y: 2.904, z: -0.025}
   m_TimeToStationary: 0.5
+--- !u!65 &-8806932094678943976
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 523376576533785268}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.2981112, y: 6.9575434, z: 0.93830144}
+  m_Center: {x: -0.03429711, y: 2.9038086, z: -0.025069356}

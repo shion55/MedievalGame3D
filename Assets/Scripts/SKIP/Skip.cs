@@ -40,6 +40,10 @@ public class Skip : MonoBehaviour
 
     private IEnumerator Start()
     {
+        // セーブデータをロードして開始する場合は
+        // 初期建物・初期職業を生成しない
+        if (SaveManager.LoadRequested)
+            yield break;
         if (!SkipActive)
             yield break;
 
@@ -79,9 +83,11 @@ public class Skip : MonoBehaviour
         if (SkipActive)
         {
             //constableに追加
-            ConstBuildingType[] SkipConstable 
-                = { ConstBuildingType.farmbuilding,
-                    ConstBuildingType.mine, 
+            ConstBuildingType[] SkipConstable
+                = {
+                    ConstBuildingType.woodcabin,
+                    ConstBuildingType.farmbuilding,
+                    ConstBuildingType.mine,
                     ConstBuildingType.huntercabin,
                     ConstBuildingType.fishmancabin,
                     ConstBuildingType.market};
@@ -96,7 +102,7 @@ public class Skip : MonoBehaviour
             foreach (ConstBuildingType type in constructioinManager.ConstableBuildingType)
             {
                 //SKIPで生成しないtype
-                if (type == ConstBuildingType.road || type == ConstBuildingType.road2 || type == ConstBuildingType.farm_block
+                if (type == ConstBuildingType.woodcabin || type == ConstBuildingType.road || type == ConstBuildingType.road2 || type == ConstBuildingType.farm_block
                     || type == ConstBuildingType.farmbuilding　|| type == ConstBuildingType.market)
                 {
                     continue;

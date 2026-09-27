@@ -22,7 +22,7 @@ MonoBehaviour:
       amount: 1
     - materialType: 3
       amount: 250
-  - conbuildingtype: 1
+  - conbuildingtype: 2
     conbuildingSprite: {fileID: 21300000, guid: 1bf5ced0aafdf104492fb44505c1777f, type: 3}
     conbuildingPrefab: {fileID: 6563516281276897743, guid: 733e609a54dd2b340b9bde12342c50f0, type: 3}
     constcategory: 1
@@ -31,7 +31,7 @@ MonoBehaviour:
       amount: 1
     - materialType: 3
       amount: 500
-  - conbuildingtype: 3
+  - conbuildingtype: 4
     conbuildingSprite: {fileID: 21300000, guid: 535b3c96e1e749f4c897c480241b3d35, type: 3}
     conbuildingPrefab: {fileID: 6960365735186381303, guid: 1889b9c6dbabdb446abb045e1d553325, type: 3}
     constcategory: 1
@@ -40,7 +40,7 @@ MonoBehaviour:
       amount: 1
     - materialType: 3
       amount: 600
-  - conbuildingtype: 4
+  - conbuildingtype: 5
     conbuildingSprite: {fileID: 21300000, guid: e6a8b0128f0d22840800b2d12bdfafe6, type: 3}
     conbuildingPrefab: {fileID: 8886945058179167082, guid: fe9476ad6233bfc45bb4edef2f796191, type: 3}
     constcategory: 1
@@ -53,7 +53,7 @@ MonoBehaviour:
       amount: 5
     - materialType: 4
       amount: 5
-  - conbuildingtype: 2
+  - conbuildingtype: 3
     conbuildingSprite: {fileID: 21300000, guid: 304ed3c0326472d47920344bbeac54fe, type: 3}
     conbuildingPrefab: {fileID: 3729910555134656502, guid: d92b5dbc29165a24fb4f6c670fda224c, type: 3}
     constcategory: 1
@@ -62,19 +62,10 @@ MonoBehaviour:
       amount: 1
     - materialType: 3
       amount: 1000
-  - conbuildingtype: 5
+  - conbuildingtype: 6
     conbuildingSprite: {fileID: 21300000, guid: 5c7b564a9746b3e4da2b730dd2acc136, type: 3}
     conbuildingPrefab: {fileID: 4306206474822392282, guid: 1b71fa96534c65146a5441964fdca3e9, type: 3}
     constcategory: 1
-    requirements:
-    - materialType: 0
-      amount: 1
-    - materialType: 3
-      amount: 200
-  - conbuildingtype: 6
-    conbuildingSprite: {fileID: 21300000, guid: 38d0d4d91c5e8704badf68c8d66b2aac, type: 3}
-    conbuildingPrefab: {fileID: 6491117342175512502, guid: 16f461ea4228726469accd6311e20b2a, type: 3}
-    constcategory: 2
     requirements:
     - materialType: 0
       amount: 1
@@ -89,7 +80,16 @@ MonoBehaviour:
       amount: 1
     - materialType: 3
       amount: 200
-  - conbuildingtype: 9
+  - conbuildingtype: 8
+    conbuildingSprite: {fileID: 21300000, guid: 38d0d4d91c5e8704badf68c8d66b2aac, type: 3}
+    conbuildingPrefab: {fileID: 6491117342175512502, guid: 16f461ea4228726469accd6311e20b2a, type: 3}
+    constcategory: 2
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 200
+  - conbuildingtype: 10
     conbuildingSprite: {fileID: 21300000, guid: 80609478f4f0f1f418451749f640502c, type: 3}
     conbuildingPrefab: {fileID: 3651891846305258706, guid: 80de52d04be035444a6c50611bb20da1, type: 3}
     constcategory: 4
@@ -98,10 +98,19 @@ MonoBehaviour:
       amount: 1
     - materialType: 3
       amount: 200
-  - conbuildingtype: 8
+  - conbuildingtype: 9
     conbuildingSprite: {fileID: 21300000, guid: ed29d1a1e14855c41968091c48e9a110, type: 3}
     conbuildingPrefab: {fileID: 3235062349772456184, guid: 94f87391367ac644fb78e6d8ac8d4f8e, type: 3}
     constcategory: 3
+    requirements:
+    - materialType: 0
+      amount: 1
+    - materialType: 3
+      amount: 200
+  - conbuildingtype: 1
+    conbuildingSprite: {fileID: 21300000, guid: 91866d4097d0f98488d57c75dc02932f, type: 3}
+    conbuildingPrefab: {fileID: 475096938663866381, guid: 363a84806bb403f4abcca0fe54d3b632, type: 3}
+    constcategory: 1
     requirements:
     - materialType: 0
       amount: 1

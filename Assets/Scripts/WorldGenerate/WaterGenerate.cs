@@ -187,7 +187,28 @@ public class WaterGenerate : MonoBehaviour
 
     [SerializeField] private int seed = 12345;
 
+    [Header("Terrain平滑化")]
 
+    [Tooltip("水辺のTerrainを滑らかにする回数")]
+    [Range(0, 5)]
+    [SerializeField] private int terrainSmoothIterations = 2;
+
+    [Tooltip("1回あたりの平滑化の強さ")]
+    [Range(0f, 1f)]
+    [SerializeField] private float terrainSmoothStrength = 0.6f;
+
+
+    [Header("岸検索")]
+
+    [SerializeField]
+    private float shoreSearchStep = 0.5f;
+
+    [SerializeField]
+    private float shoreSearchMaxDistance = 30f;
+
+    [SerializeField]
+    [Range(8, 64)]
+    private int shoreSearchDirections = 32;
     // =========================================================
     // 内部データ
     // =========================================================
@@ -296,6 +317,7 @@ public class WaterGenerate : MonoBehaviour
 
         ConnectAllLakes();
 
+        SmoothCarvedTerrain();
 
         UnityEngine.Random.state =
             oldRandomState;
@@ -2177,32 +2199,132 @@ public class WaterGenerate : MonoBehaviour
         collider.sharedMesh =
             mesh;
 
-        NavMeshModifierVolume modifier =
-    lakeObject.AddComponent<NavMeshModifierVolume>();
-
-        modifier.area =
-            NavMesh.GetAreaFromName("Not Walkable");
-
-        float navRadius =
-            lake.baseRadius *
-            lakeWaterRadiusScale;
-
-        modifier.size =
-            new Vector3(
-                navRadius * 2f,
-                navMeshWaterHeight,
-                navRadius * 2f
-            );
-
-        modifier.center =
-            new Vector3(
-                0f,
-                -navMeshWaterHeight * 0.5f,
-                0f
-            );
+        CreateLakeNavMeshVolumes(
+    lakeObject.transform,
+    lake
+);
     }
 
+    private void CreateLakeNavMeshVolumes(
+    Transform parent,
+    LakeData lake)
+    {
+        float cellSize = 1.5f;
 
+        float maxRadius =
+            lake.baseRadius *
+            (1f + lakeEdgeRandomness) *
+            lakeWaterRadiusScale;
+
+
+        for (float x = -maxRadius;
+             x <= maxRadius;
+             x += cellSize)
+        {
+            for (float z = -maxRadius;
+                 z <= maxRadius;
+                 z += cellSize)
+            {
+                Vector3 worldPosition =
+                    lake.center +
+                    new Vector3(
+                        x,
+                        0f,
+                        z
+                    );
+
+
+                float dx =
+                    worldPosition.x -
+                    lake.center.x;
+
+                float dz =
+                    worldPosition.z -
+                    lake.center.z;
+
+
+                float distance =
+                    Mathf.Sqrt(
+                        dx * dx +
+                        dz * dz
+                    );
+
+
+                float angle =
+                    Mathf.Atan2(
+                        dz,
+                        dx
+                    );
+
+
+                if (angle < 0f)
+                {
+                    angle +=
+                        Mathf.PI * 2f;
+                }
+
+
+                float lakeRadius =
+                    GetLakeRadiusAtAngle(
+                        lake,
+                        angle
+                    ) *
+                    lakeWaterRadiusScale;
+
+
+                // 湖の内側だけ
+                // 少し岸から引っ込める
+                if (distance >
+                    lakeRadius - cellSize * 0.35f)
+                {
+                    continue;
+                }
+
+
+                GameObject volumeObject =
+                    new GameObject(
+                        "LakeNavMeshBlock"
+                    );
+
+
+                volumeObject.transform.SetParent(
+                    parent
+                );
+
+
+                volumeObject.transform.position =
+                    new Vector3(
+                        worldPosition.x,
+                        globalWaterY,
+                        worldPosition.z
+                    );
+
+
+                NavMeshModifierVolume volume =
+                    volumeObject.AddComponent<
+                        NavMeshModifierVolume
+                    >();
+
+
+                volume.area =
+                    NavMesh.GetAreaFromName(
+                        "Not Walkable"
+                    );
+
+
+                volume.size =
+                    new Vector3(
+                        cellSize,
+                        navMeshWaterHeight,
+                        cellSize
+                    );
+
+
+                volume.center =
+                    Vector3.zero;
+            }
+        }
+    }
     // =========================================================
     // 川Mesh
     // =========================================================
@@ -2500,12 +2622,7 @@ public class WaterGenerate : MonoBehaviour
                 );
 
 
-            volume.center =
-                new Vector3(
-                    0f,
-                    -navMeshWaterHeight * 0.5f,
-                    0f
-                );
+            volume.center = Vector3.zero;
         }
     }
     // =========================================================
@@ -2801,7 +2918,7 @@ public class WaterGenerate : MonoBehaviour
 
 
     private void DestroyGeneratedObject(
-        GameObject obj)
+     GameObject obj)
     {
         if (obj == null)
             return;
@@ -2809,7 +2926,6 @@ public class WaterGenerate : MonoBehaviour
 
         MeshFilter filter =
             obj.GetComponent<MeshFilter>();
-
 
         Mesh generatedMesh =
             null;
@@ -2825,37 +2941,41 @@ public class WaterGenerate : MonoBehaviour
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
-            DestroyImmediate(
-                obj
-            );
+            GameObject selected =
+                Selection.activeGameObject;
 
-
-            if (generatedMesh != null)
+            if (selected == obj ||
+                (selected != null &&
+                 selected.transform.IsChildOf(obj.transform)))
             {
-                DestroyImmediate(
-                    generatedMesh
-                );
+                // Inspectorが削除対象を参照したままにしない
+                Selection.activeGameObject = gameObject;
             }
 
+
+            Undo.DestroyObjectImmediate(obj);
+
+
+            // Scriptから生成した一時Meshだけ削除
+            if (generatedMesh != null &&
+                !AssetDatabase.Contains(generatedMesh))
+            {
+                DestroyImmediate(generatedMesh);
+            }
 
             return;
         }
 #endif
 
 
-        Destroy(
-            obj
-        );
+        Destroy(obj);
 
 
         if (generatedMesh != null)
         {
-            Destroy(
-                generatedMesh
-            );
+            Destroy(generatedMesh);
         }
     }
-
 
     // =========================================================
     // Terrain復元
@@ -2895,108 +3015,382 @@ public class WaterGenerate : MonoBehaviour
         );
     }
 
-
-    // =========================================================
-    // 指定地点が水域か
-    // =========================================================
-
-    public bool IsPointInWater(
-    Vector3 worldPosition,
-    float margin = 0f)
+    private void SmoothCarvedTerrain()
     {
-        // =====================================================
-        // 湖
-        // =====================================================
+        if (terrainSmoothIterations <= 0)
+            return;
 
-        foreach (LakeData lake
-                 in generatedLakes)
+        if (terrainSmoothStrength <= 0f)
+            return;
+
+        if (terrain == null ||
+            baseTerrainData == null)
+            return;
+
+
+        TerrainData data =
+            terrain.terrainData;
+
+
+        int resolution =
+            data.heightmapResolution;
+
+
+        float[,] baseHeights =
+            baseTerrainData.GetHeights(
+                0,
+                0,
+                resolution,
+                resolution
+            );
+
+
+        float[,] heights =
+            data.GetHeights(
+                0,
+                0,
+                resolution,
+                resolution
+            );
+
+
+        const float epsilon =
+            0.000001f;
+
+
+        for (int iteration = 0;
+             iteration < terrainSmoothIterations;
+             iteration++)
         {
-            float dx =
-                worldPosition.x -
-                lake.center.x;
-
-            float dz =
-                worldPosition.z -
-                lake.center.z;
+            float[,] source =
+                (float[,])heights.Clone();
 
 
-            float distance =
-                Mathf.Sqrt(
-                    dx * dx +
-                    dz * dz
-                );
-
-
-            float angle =
-                Mathf.Atan2(
-                    dz,
-                    dx
-                );
-
-
-            if (angle < 0f)
+            for (int z = 1;
+                 z < resolution - 1;
+                 z++)
             {
-                angle +=
-                    Mathf.PI * 2f;
-            }
-
-
-            float radius =
-                GetLakeRadiusAtAngle(
-                    lake,
-                    angle
-                ) *
-                lakeWaterRadiusScale;
-
-
-            if (distance <=
-                radius + margin)
-            {
-                return true;
-            }
-        }
-
-
-        // =====================================================
-        // 川
-        // =====================================================
-
-        foreach (List<Vector3> river
-                 in generatedRivers)
-        {
-            if (river == null ||
-                river.Count < 2)
-            {
-                continue;
-            }
-
-
-            for (int i = 0;
-                 i < river.Count - 1;
-                 i++)
-            {
-                float t;
-
-
-                float distance =
-                    DistanceToSegmentXZ(
-                        worldPosition,
-                        river[i],
-                        river[i + 1],
-                        out t
-                    );
-
-
-                if (distance <=
-                    riverWidth * 0.5f +
-                    margin)
+                for (int x = 1;
+                     x < resolution - 1;
+                     x++)
                 {
-                    return true;
+                    // この地点の周囲に
+                    // 水生成によって掘られた場所があるか
+                    bool nearCarvedArea =
+                        false;
+
+
+                    for (int dz = -1;
+                         dz <= 1 &&
+                         !nearCarvedArea;
+                         dz++)
+                    {
+                        for (int dx = -1;
+                             dx <= 1;
+                             dx++)
+                        {
+                            if (source[z + dz, x + dx] <
+                                baseHeights[z + dz, x + dx] -
+                                epsilon)
+                            {
+                                nearCarvedArea =
+                                    true;
+
+                                break;
+                            }
+                        }
+                    }
+
+
+                    if (!nearCarvedArea)
+                        continue;
+
+
+                    // 3x3平均
+                    float total =
+                        0f;
+
+                    int count =
+                        0;
+
+
+                    for (int dz = -1;
+                         dz <= 1;
+                         dz++)
+                    {
+                        for (int dx = -1;
+                             dx <= 1;
+                             dx++)
+                        {
+                            total +=
+                                source[
+                                    z + dz,
+                                    x + dx
+                                ];
+
+                            count++;
+                        }
+                    }
+
+
+                    float average =
+                        total /
+                        count;
+
+
+                    float smoothed =
+                        Mathf.Lerp(
+                            source[z, x],
+                            average,
+                            terrainSmoothStrength
+                        );
+
+
+                    // 元Terrainより高くなることは禁止
+                    heights[z, x] =
+                        Mathf.Min(
+                            baseHeights[z, x],
+                            smoothed
+                        );
                 }
             }
         }
 
 
-        return false;
+        data.SetHeights(
+            0,
+            0,
+            heights
+        );
+    }
+    // =========================================================
+    // 指定地点が水域か
+    // =========================================================
+
+    public bool IsPointInWater(
+     Vector3 worldPosition,
+     float margin = 0f)
+    {
+        int waterLayer =
+            LayerMask.NameToLayer("Water");
+
+
+        if (waterLayer < 0)
+            return false;
+
+
+        int layerMask =
+            1 << waterLayer;
+
+
+        // Terrainより十分高いところから下方向へ判定
+        float topY =
+            terrain.transform.position.y +
+            terrain.terrainData.size.y +
+            20f;
+
+
+        Vector3 origin =
+            new Vector3(
+                worldPosition.x,
+                topY,
+                worldPosition.z
+            );
+
+
+        float castDistance =
+            terrain.terrainData.size.y +
+            40f;
+
+
+        // marginなしなら普通のRay
+        if (margin <= 0.001f)
+        {
+            return Physics.Raycast(
+                origin,
+                Vector3.down,
+                castDistance,
+                layerMask,
+                QueryTriggerInteraction.Collide
+            );
+        }
+
+
+        // marginありなら、水際から少し離すためSphereCast
+        return Physics.SphereCast(
+            origin,
+            margin,
+            Vector3.down,
+            out _,
+            castDistance,
+            layerMask,
+            QueryTriggerInteraction.Collide
+        );
+    }
+
+
+    public bool TryFindNearestShore(
+    Vector3 waterPoint,
+    out Vector3 shorePoint,
+    out Vector3 directionToWater)
+    {
+        shorePoint = Vector3.zero;
+        directionToWater = Vector3.zero;
+
+
+        // 指定地点がそもそも水でなければ失敗
+        if (!IsPointInWater(waterPoint))
+        {
+            return false;
+        }
+
+
+        float bestDistance =
+            Mathf.Infinity;
+
+        bool found =
+            false;
+
+
+        // 水面上から360度探索
+        for (int i = 0;
+             i < shoreSearchDirections;
+             i++)
+        {
+            float angle =
+                Mathf.PI *
+                2f *
+                i /
+                shoreSearchDirections;
+
+
+            Vector3 direction =
+                new Vector3(
+                    Mathf.Cos(angle),
+                    0f,
+                    Mathf.Sin(angle)
+                );
+
+
+            Vector3 previousPoint =
+                waterPoint;
+
+
+            for (float distance = shoreSearchStep;
+                 distance <= shoreSearchMaxDistance;
+                 distance += shoreSearchStep)
+            {
+                Vector3 testPoint =
+                    waterPoint +
+                    direction *
+                    distance;
+
+
+                // まだ水
+                if (IsPointInWater(testPoint))
+                {
+                    previousPoint =
+                        testPoint;
+
+                    continue;
+                }
+
+
+                // ---------------------------------------------
+                // previousPoint = 水
+                // testPoint     = 陸
+                //
+                // この間に岸があるので二分探索
+                // ---------------------------------------------
+
+                Vector3 waterSide =
+                    previousPoint;
+
+                Vector3 landSide =
+                    testPoint;
+
+
+                for (int j = 0; j < 8; j++)
+                {
+                    Vector3 middle =
+                        Vector3.Lerp(
+                            waterSide,
+                            landSide,
+                            0.5f
+                        );
+
+
+                    if (IsPointInWater(middle))
+                    {
+                        waterSide =
+                            middle;
+                    }
+                    else
+                    {
+                        landSide =
+                            middle;
+                    }
+                }
+
+
+                float shoreDistance =
+                    Vector3.Distance(
+                        waterPoint,
+                        landSide
+                    );
+
+
+                if (shoreDistance <
+                    bestDistance)
+                {
+                    bestDistance =
+                        shoreDistance;
+
+                    shorePoint =
+                        landSide;
+
+
+                    // 岸 → 水 の方向
+                    directionToWater =
+                        waterSide -
+                        landSide;
+
+                    directionToWater.y =
+                        0f;
+
+
+                    if (directionToWater.sqrMagnitude >
+                        0.0001f)
+                    {
+                        directionToWater.Normalize();
+                    }
+
+
+                    found =
+                        true;
+                }
+
+
+                // この方向では最初の岸だけ見ればいい
+                break;
+            }
+        }
+
+
+        if (!found)
+        {
+            return false;
+        }
+
+
+        // Terrain表面に合わせる
+        shorePoint.y =
+            terrain.SampleHeight(
+                shorePoint
+            ) +
+            terrain.transform.position.y;
+
+
+        return true;
     }
 }

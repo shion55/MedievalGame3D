@@ -45,6 +45,7 @@ public class VillagerBase : MonoBehaviour
     //職業変更　
     [HideInInspector] public Job jobchangeto;
     [HideInInspector] private Job currentjob;
+    private GameObject jobBuildingChangeTo;
     [HideInInspector] public bool jobchangeflag = false;
     //職業建物
     [HideInInspector] public GameObject MyJobBuilding;
@@ -79,6 +80,7 @@ public class VillagerBase : MonoBehaviour
 
 
     private Coroutine arrcheck;//バグ防止
+    private Coroutine blockedJobChangeWait;
     private void Awake()
     {
         jobandscript = new Dictionary<Job, JobBase>
@@ -137,13 +139,13 @@ public class VillagerBase : MonoBehaviour
     public void JobChange(Job job,GameObject jobbuilding)//statusmanagerから呼び出し
     {
         jobchangeto = job;
-        MyJobBuilding = jobbuilding;
+        jobBuildingChangeTo = jobbuilding;
     }
     public void JobChangeExecute()//各職業スクリプトから呼び出し
     {
         currentjob = jobchangeto;
         jobchangeflag = false;
-        
+        MyJobBuilding = jobBuildingChangeTo;
 
         //服の色を変更
         Color clothcolor = jobbuildingmaster.GetDataByJob(currentjob).jobClothColor;
@@ -167,19 +169,24 @@ public class VillagerBase : MonoBehaviour
 
     public void DepartToTarget(GameObject target, GoState state)
     {
-        DebugController.Log("DepartTo" + target.name + "ー" + currentjob);
+        //DebugController.Log("DepartTo" + target.name + "ー" + currentjob);
 
         agent.isStopped = false;
 
-        Transform targetent = target.transform.Find("Entrance");
+        BuildingAccessPoints accessPoints =target.GetComponent<BuildingAccessPoints>();
 
-        if (targetent != null)
+        if (accessPoints != null &&
+            accessPoints.Entrance != null)
         {
-            agent.SetDestination(targetent.position);
+            agent.SetDestination(
+                accessPoints.Entrance.position
+            );
         }
         else
         {
-            agent.SetDestination(target.transform.position);
+            agent.SetDestination(
+                target.transform.position
+            );
         }
 
         StartCoroutine(ShowAfterFacingDirection(state));//向きとアニメを調整
@@ -195,7 +202,12 @@ public class VillagerBase : MonoBehaviour
         yield return null;
 
         yield return new WaitUntil(() => !agent.pathPending);
-
+        if (!agent.hasPath ||
+    agent.pathStatus !=
+        NavMeshPathStatus.PathComplete)
+        {
+            yield break;
+        }
         // NavMeshの最初の進行方向を向く
         if (agent.path != null && agent.path.corners.Length > 1)
         {
@@ -242,13 +254,53 @@ public class VillagerBase : MonoBehaviour
             );
 
             agent.isStopped = true;
+            agent.ResetPath();
             arrcheck = null;
+            // 歩行アニメのまま止まらないようにする
+            MyRenderOn();
+
+            anim.Play(
+                AnimType.Idle
+            );
+
+
+            // 頭上の警告
+            if (warningpartcle != null)
+            {
+                warningpartcle.Play();
+            }
+
+
+            // Informationへ追加
+            uicontroller.MakePathWarning(
+                this.gameObject,
+                target.name
+            );
+
+
+            arrcheck = null;
+
+            StartBlockedJobChangeWait();
+
             yield break;
         }
+        yield return new WaitUntil(
+    () => !agent.pathPending);
 
-        yield return new WaitUntil(() =>
-            agent.remainingDistance <= ArriveRadius &&
-            agent.velocity.sqrMagnitude < 0.01f);
+        if (blockedJobChangeWait != null)
+        {
+            StopCoroutine(
+                blockedJobChangeWait
+            );
+
+            blockedJobChangeWait =
+                null;
+        }
+        // 成功した
+        uicontroller.RemovePathWarning(
+           this.gameObject
+        );
+        yield return new WaitUntil(() =>agent.remainingDistance <= ArriveRadius &&agent.velocity.sqrMagnitude < 0.01f);
 
         agent.isStopped = true;
         arrcheck = null;
@@ -268,7 +320,53 @@ public class VillagerBase : MonoBehaviour
             StartCoroutine(StartLeisure(target));
         }
     }
+    private void StartBlockedJobChangeWait()
+    {
+        if (blockedJobChangeWait != null)
+            return;
 
+        blockedJobChangeWait =
+            StartCoroutine(
+                WaitForJobChangeWhileBlocked()
+            );
+    }
+
+
+    private IEnumerator WaitForJobChangeWhileBlocked()
+    {
+        while (true)
+        {
+            if (jobchangeflag)
+            {
+                blockedJobChangeWait =
+                    null;
+
+                // 経路警告を消す
+                uicontroller.RemovePathWarning(
+                    this.gameObject
+                );
+
+                if (warningpartcle != null)
+                {
+                    warningpartcle.Stop();
+                }
+
+                // 古い経路を完全に捨てる
+                if (agent != null &&
+                    agent.isActiveAndEnabled)
+                {
+                    agent.isStopped = true;
+                    agent.ResetPath();
+                }
+
+                JobChangeExecute();
+
+                yield break;
+            }
+
+            yield return null;
+        }
+    }
     IEnumerator StartLeisure (GameObject leisure)
     {
         List<Transform> hubpoints = new List<Transform>();

@@ -5,6 +5,7 @@ using UnityEngine;
 public enum ConstBuildingType
 {
     House,
+    woodcabin,
     sawmill,
     farmbuilding,
     mine,

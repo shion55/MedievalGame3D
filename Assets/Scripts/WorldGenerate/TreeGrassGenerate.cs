@@ -2,6 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.AI.Navigation;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 
 public class TreeGrassGenerate : MonoBehaviour
 {
@@ -159,8 +163,8 @@ public class TreeGrassGenerate : MonoBehaviour
     }
 
     private void ClearCategory(
-        Transform parent,
-        Dictionary<GameObject, Vector3> data)
+    Transform parent,
+    Dictionary<GameObject, Vector3> data)
     {
         if (parent == null)
             return;
@@ -176,9 +180,27 @@ public class TreeGrassGenerate : MonoBehaviour
         foreach (GameObject go in children)
         {
 #if UNITY_EDITOR
-            DestroyImmediate(go);
+            if (!Application.isPlaying)
+            {
+                GameObject selected =
+                    Selection.activeGameObject;
+
+                if (selected == go ||
+                    (selected != null &&
+                     selected.transform.IsChildOf(go.transform)))
+                {
+                    // çÌèúÇ∑ÇÈObjectÇInspectorÇ™íÕÇÒÇæÇ‹Ç‹Ç…ÇµÇ»Ç¢
+                    Selection.activeGameObject = gameObject;
+                }
+
+                Undo.DestroyObjectImmediate(go);
+            }
+            else
+            {
+                Destroy(go);
+            }
 #else
-            Destroy(go);
+        Destroy(go);
 #endif
         }
 

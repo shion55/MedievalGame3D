@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9146334168313452305}
   - component: {fileID: 2807275685691142155}
+  - component: {fileID: 2390299124736579203}
   m_Layer: 0
   m_Name: HunterCabinRoot
   m_TagString: Untagged
@@ -54,6 +55,19 @@ MonoBehaviour:
   OccupantVillagers: []
   capacity: 0
   amuseneedmaterials: 
+--- !u!114 &2390299124736579203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8886945058179167082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c0b5972563096b49b18c00a021d9fd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entrance: {fileID: 624163045247426807}
 --- !u!1001 &911381435801746272
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -68,7 +82,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4794547511090217007, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.436
+      value: 1.26
       objectReference: {fileID: 0}
     - target: {fileID: 4794547511090217007, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
       propertyPath: m_LocalPosition.z
@@ -112,6 +126,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
+--- !u!4 &624163045247426807 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 291775673519774615, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}
+  m_PrefabInstance: {fileID: 911381435801746272}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5632955407818111823 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4794547511090217007, guid: 8849b97d7479cdf4ba033b7a9fef6e05, type: 3}

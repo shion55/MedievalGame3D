@@ -117,7 +117,7 @@ public class Hunter : JobBase
         Destroy(vanison.gameObject);
         FinishHunt = true;
         IsGoMyBuilding = true;
-        VA.AcceDisActive(myMaterialAcce ); ;
+        VA.AcceActive(myMaterialAcce); ;
         VB.DepartToTarget(myJobBuilding, VillagerBase.GoState.GoCarry);
     }
     private IEnumerator FlyArrowTo(Transform arrow, Vector3 targetPos, float speed, float arriveThreshold)

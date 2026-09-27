@@ -38,13 +38,16 @@ public class UIController : MonoBehaviour
     public GameObject InformationUI;
     public Transform InformatioinTextParrnt;
     public GameObject InformationTextPrefab;
-    
+
+    private List<string> NotEnoughWarnings = new List<string>();
+    private readonly Dictionary<GameObject, string> PathWarnings = new Dictionary<GameObject, string>();
+
     [Header("村人一覧UI")]
     public GameObject OpenVillagerOverViewUIButton;
     public GameObject VillagerOverViewUI;     //村人と職業の全体UI
     public GameObject VillOvewViewVillagerPrefab; //村人と職業の一人分のprefab
     public Transform VillagerOverViewContetPa;//↑のprefabが入っている親
-    private List<string> NotEnoughWarnings = new List<string>();
+    
 
 
     [Header("お金")]
@@ -288,6 +291,10 @@ public class UIController : MonoBehaviour
         else if (index == 2) {//村人一覧から呼ばれている
             VillagerOverViewUIOpen();
         }
+        else if (index == 3)
+        {//infromationから呼ばれている
+            OpenInformationUI();
+        }
     }
     #endregion
 
@@ -299,6 +306,7 @@ public class UIController : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+
         InformationUI.SetActive(true);
         InformationButton.SetActive(false);
 
@@ -309,7 +317,22 @@ public class UIController : MonoBehaviour
             GameObject infoObj = Instantiate(InformationTextPrefab, InformatioinTextParrnt);
             TextMeshProUGUI warntext = infoObj.GetComponentInChildren<TextMeshProUGUI>();
             warntext.text = warning;
-            //Button Spotbutton = infoObj.GetComponentInChildren<Button>();
+            Button Spotbutton = infoObj.GetComponentInChildren<Button>();
+        }
+        foreach (GameObject vil in PathWarnings.Keys)
+        {
+            GameObject infoObj =
+                Instantiate(
+                    InformationTextPrefab,
+                    InformatioinTextParrnt
+                );
+
+            TextMeshProUGUI warntext =
+                infoObj.GetComponentInChildren<TextMeshProUGUI>();
+
+            warntext.text = PathWarnings[vil];
+            Button Spotbutton = infoObj.GetComponentInChildren<Button>();
+            Spotbutton.onClick.AddListener(() => SpotToVillager(vil, 3));//infoから呼ばれたことを示す3
         }
 
     }
@@ -317,7 +340,8 @@ public class UIController : MonoBehaviour
     {
         UIOPEN = false;
         InformationUI.SetActive(false);
-        if (NotEnoughWarnings.Count > 0)
+        if (NotEnoughWarnings.Count > 0 ||
+    PathWarnings.Count > 0)
         {
             InformationButton.SetActive(true);
         }
@@ -343,6 +367,35 @@ public class UIController : MonoBehaviour
             NotEnoughWarnings.Remove(message);
         }
         if(NotEnoughWarnings.Count == 0)
+        {
+            InformationButton.SetActive(false);
+        }
+    }
+    public void MakePathWarning(GameObject villagerObj,string targetName)
+    {
+        string message =
+            $"The villager can't get to their destination";
+
+
+        PathWarnings[villagerObj] =
+            message;
+
+
+        if (!InformationButton.activeSelf)
+        {
+            InformationButton.SetActive(true);
+        }
+    }
+
+
+    public void RemovePathWarning(
+        GameObject vilobj)
+    {
+        PathWarnings.Remove(vilobj);
+
+
+        if (NotEnoughWarnings.Count == 0 &&
+            PathWarnings.Count == 0)
         {
             InformationButton.SetActive(false);
         }

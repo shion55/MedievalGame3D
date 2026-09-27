@@ -17,7 +17,25 @@ public class ConstSiteSetHandler : MonoBehaviour
     public Transform PreviewObjParent;
 
     [Header("釣り人小屋")]
-    public GameObject PondCollider;
+
+    [SerializeField]
+    private WaterGenerate waterGenerate;
+
+    [SerializeField]
+    private Terrain terrain;
+
+    [SerializeField]
+    private LayerMask waterLayer;
+
+    [Tooltip("岸から陸側へ小屋を離す距離")]
+    [SerializeField]
+    private float fishermanShoreOffset = 1.5f;
+
+    [Header("建設予定地の予約")]
+
+    [Tooltip("建設予定地同士を少し離す余白")]
+    [SerializeField]
+    private float constructionSiteMargin = 0.3f;
 
     [Header("設置不可判定")]
     [SerializeField]
@@ -39,7 +57,8 @@ public class ConstSiteSetHandler : MonoBehaviour
     [Header("回転")]
     public float rotateStep = 45f;
 
-
+    [Header("Camera")]
+    [SerializeField] private Cameracont cameraCont;
     [HideInInspector]
     public bool SiteGenMode = false;
 
@@ -183,7 +202,22 @@ public class ConstSiteSetHandler : MonoBehaviour
         if (!SiteGenMode)
             return;
 
+
+        // 建築プレビューが画面端にあるときカメラ移動
+        if (cameraCont != null &&
+            TryGetPointerPosition(
+                out Vector2 pointerPosition))
+        {
+            
+            cameraCont.MoveCameraAtScreenEdge(
+                pointerPosition
+            );
+        }
+
+
+        // カメラ移動後にプレビュー位置を更新
         UpdatePreview();
+
 
         if (!Application.isMobilePlatform)
         {
@@ -201,7 +235,7 @@ public class ConstSiteSetHandler : MonoBehaviour
         if (!PreviewObjects.ContainsKey(type))
             return;
 
-
+        cameraCont.CameraContActive = true;
         buildingNowType = type;
 
         CanSetSite = false;
@@ -284,7 +318,7 @@ public class ConstSiteSetHandler : MonoBehaviour
     {
         SiteGenMode = false;
         CanSetSite = false;
-
+        cameraCont.CameraContActive = false;
 
         if (NowPreviewPrefab != null)
         {
@@ -383,43 +417,68 @@ public class ConstSiteSetHandler : MonoBehaviour
     // 釣り人小屋
     // =========================================================
 
-    private void UpdateFishermanCabin(Ray ray)
+    private void UpdateFishermanCabin(
+    Ray ray)
     {
-        if (!TryRaycastObject(
-                PondCollider,
+        if (waterGenerate == null)
+        {
+            SetCanPlace(false);
+            return;
+        }
+
+
+        // =====================================================
+        // 実際の湖・川MeshをRaycast
+        // =====================================================
+
+        if (!Physics.Raycast(
                 ray,
-                out RaycastHit pondHit))
+                out RaycastHit waterHit,
+                500f,
+                waterLayer,
+                QueryTriggerInteraction.Collide))
         {
             SetCanPlace(false);
             return;
         }
 
 
-        Collider pondCol =
-            PondCollider.GetComponent<Collider>();
+        // =====================================================
+        // クリック地点から一番近い岸を探す
+        // =====================================================
 
-        if (pondCol == null)
+        if (!waterGenerate.TryFindNearestShore(
+                waterHit.point,
+                out Vector3 shorePoint,
+                out Vector3 directionToWater))
         {
             SetCanPlace(false);
             return;
         }
+
+
+        // =====================================================
+        // 岸から少し陸側へ移動
+        // =====================================================
+
+        Vector3 directionToLand =
+            -directionToWater;
 
 
         Vector3 position =
-            GetPondEdgePosition(
-                pondHit.point,
-                pondCol.bounds
-            );
+            shorePoint +
+            directionToLand *
+            fishermanShoreOffset;
 
 
-        // 地面の高さも取れるなら使う
-        if (TryRaycastObject(
-                Plane,
-                ray,
-                out RaycastHit groundHit))
+        // Terrainの高さへ合わせる
+        if (terrain != null)
         {
             position.y =
-                groundHit.point.y;
+                terrain.SampleHeight(
+                    position
+                ) +
+                terrain.transform.position.y;
         }
 
 
@@ -427,35 +486,33 @@ public class ConstSiteSetHandler : MonoBehaviour
             position;
 
 
-        // 湖の中心を向く
-        Vector3 pondCenter =
-            pondCol.bounds.center;
+        // =====================================================
+        // 小屋を水側へ向ける
+        // =====================================================
 
-        Vector3 lookTarget =
-            new Vector3(
-                pondCenter.x,
-                position.y,
-                pondCenter.z
-            );
-
-
-        Vector3 direction =
-            lookTarget - position;
-
-        if (direction.sqrMagnitude > 0.001f)
+        if (directionToWater.sqrMagnitude >
+            0.001f)
         {
             NowPreviewPrefab.transform.rotation =
-                Quaternion.LookRotation(direction);
+                Quaternion.LookRotation(
+                    directionToWater,
+                    Vector3.up
+                );
         }
 
+
+        // =====================================================
+        // 建物・木・水との衝突
+        // =====================================================
 
         bool blocked =
             IsPlacementBlocked();
 
 
-        SetCanPlace(!blocked);
+        SetCanPlace(
+            !blocked
+        );
     }
-
 
     // =========================================================
     // 池の縁へ移動
@@ -558,7 +615,7 @@ public class ConstSiteSetHandler : MonoBehaviour
                 halfExtents,
                 placementArea.transform.rotation,
                 hitLayers,
-                QueryTriggerInteraction.Ignore
+               QueryTriggerInteraction.Collide
             );
         }
 
@@ -586,7 +643,7 @@ public class ConstSiteSetHandler : MonoBehaviour
             bounds.extents,
             Quaternion.identity,
             hitLayers,
-            QueryTriggerInteraction.Ignore
+            QueryTriggerInteraction.Collide
         );
     }
 
@@ -617,7 +674,107 @@ public class ConstSiteSetHandler : MonoBehaviour
         return null;
     }
 
+    private void CreateConstructionReservation(
+    GameObject siteObj)
+    {
+        BoxCollider placementArea =
+            FindPlacementArea();
 
+        if (placementArea == null)
+        {
+            Debug.LogWarning(
+                "PlacementArea が無いため建設予定範囲を作れませんでした"
+            );
+
+            return;
+        }
+
+
+        // PlacementAreaのワールド中心
+        Vector3 worldCenter =
+            placementArea.transform.TransformPoint(
+                placementArea.center
+            );
+
+
+        // ワールド上での実寸
+        Vector3 scale =
+            placementArea.transform.lossyScale;
+
+
+        Vector3 worldSize =
+            new Vector3(
+                placementArea.size.x *
+                Mathf.Abs(scale.x),
+
+                placementArea.size.y *
+                Mathf.Abs(scale.y),
+
+                placementArea.size.z *
+                Mathf.Abs(scale.z)
+            );
+
+
+        // 建物同士を少し離す
+        worldSize.x +=
+            constructionSiteMargin * 2f;
+
+        worldSize.z +=
+            constructionSiteMargin * 2f;
+
+
+        // =====================================================
+        // 予約領域Object
+        // =====================================================
+
+        GameObject reservation =
+            new GameObject(
+                "PlacementReservation"
+            );
+
+
+        reservation.transform.position =
+            worldCenter;
+
+        reservation.transform.rotation =
+            placementArea.transform.rotation;
+
+
+        reservation.transform.SetParent(
+            siteObj.transform,
+            true
+        );
+
+
+        // 通常のBuildingと同じLayerにして
+        // hitLayersで検出できるようにする
+        int buildingLayer =
+            LayerMask.NameToLayer(
+                "Building"
+            );
+
+
+        if (buildingLayer >= 0)
+        {
+            reservation.layer =
+                buildingLayer;
+        }
+
+
+        BoxCollider collider =
+            reservation.AddComponent<BoxCollider>();
+
+
+        collider.center =
+            Vector3.zero;
+
+        collider.size =
+            worldSize;
+
+        // 実際に物理的に押し返す必要はない
+        collider.isTrigger =
+            true;
+    }
     // =========================================================
     // 設置可能状態
     // =========================================================
@@ -730,6 +887,9 @@ public class ConstSiteSetHandler : MonoBehaviour
                 Site.transform.rotation
             );
 
+        CreateConstructionReservation(
+    siteObj
+);
 
         constManager.waitingSite.Add(
             siteObj

@@ -80,17 +80,15 @@ public abstract class JobBase : MonoBehaviour, IJob
     public virtual IEnumerator TakeAShortBreak()
     {
         VB.MRender.enabled = false;
-        Debug.Log("takeashortbreak");
         yield return new WaitForSeconds(shortBreakTime);
         VB.MRender.enabled = true;
         ReStartMyJob();
     }
     public virtual void ReStartMyJob()
     {
-        Debug.Log("RestartJob");
         VH.HungerLevelUpdate(-10);
     }
-
+  
     /* ====== 余暇 ====== */
     protected bool TryStartLeisure()
     {

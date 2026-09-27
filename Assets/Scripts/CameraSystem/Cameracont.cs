@@ -6,6 +6,11 @@ using static UnityEngine.GraphicsBuffer;
 
 public class Cameracont : MonoBehaviour
 {
+    [Header("カメラ範囲")]
+    [SerializeField] private Terrain terrain;
+
+    [SerializeField]
+    private float terrainEdgeMargin = 1f;
     public Camera thirdPersonCamera; // TPSカメラ
     public Camera mainCamera;        // 通常のカメラ
 
@@ -40,6 +45,10 @@ public class Cameracont : MonoBehaviour
     public float minSize = 2f;
     public float maxSize = 20f;
 
+    [Header("画面端スクロール")]
+    [SerializeField] private float edgeScrollMargin = 60f;
+
+    [SerializeField] private float edgeScrollSpeed = 12f;
 
     //↓　追従モード設定
     private GameObject TargetObj;
@@ -93,11 +102,12 @@ public class Cameracont : MonoBehaviour
             lastTouchPos = Input.mousePosition;
         }
 
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        float scroll =
+    Input.GetAxis("Mouse ScrollWheel");
+
         if (Mathf.Abs(scroll) > 0.01f)
         {
-            mainCamera.orthographicSize -= scroll * zoomSpeed;
-            mainCamera.orthographicSize = Mathf.Clamp(mainCamera.orthographicSize, minSize, maxSize);
+            Zoom(scroll * zoomSpeed);
         }
         if (Input.touchCount == 2)
         {
@@ -133,11 +143,231 @@ public class Cameracont : MonoBehaviour
     }
     private void Zoom(float delta)
     {
-        mainCamera.orthographicSize = Mathf.Clamp(
-            mainCamera.orthographicSize - delta,
-            minSize,
-            maxSize
-        );
+        float oldSize =
+            mainCamera.orthographicSize;
+
+
+        float newSize =
+            Mathf.Clamp(
+                oldSize - delta,
+                minSize,
+                maxSize
+            );
+
+
+        mainCamera.orthographicSize =
+            newSize;
+
+
+        // ズームアウトした結果、
+        // 画面外にTerrainが見えるなら元に戻す
+        if (newSize > oldSize &&
+            !IsWholeViewInsideTerrain())
+        {
+            mainCamera.orthographicSize =
+                oldSize;
+        }
+    }
+    private bool IsWholeViewInsideTerrain()
+    {
+        if (terrain == null ||
+            mainCamera == null)
+        {
+            return true;
+        }
+
+
+        Vector3 terrainPosition =
+            terrain.transform.position;
+
+        Vector3 terrainSize =
+            terrain.terrainData.size;
+
+
+        float minX =
+            terrainPosition.x +
+            terrainEdgeMargin;
+
+        float maxX =
+            terrainPosition.x +
+            terrainSize.x -
+            terrainEdgeMargin;
+
+        float minZ =
+            terrainPosition.z +
+            terrainEdgeMargin;
+
+        float maxZ =
+            terrainPosition.z +
+            terrainSize.z -
+            terrainEdgeMargin;
+
+
+        // Terrainの基準高さの水平面
+        Plane groundPlane =
+            new Plane(
+                Vector3.up,
+                new Vector3(
+                    0f,
+                    terrainPosition.y,
+                    0f
+                )
+            );
+
+
+        Vector2[] corners =
+        {
+        new Vector2(0f, 0f),
+        new Vector2(1f, 0f),
+        new Vector2(0f, 1f),
+        new Vector2(1f, 1f)
+    };
+
+
+        foreach (Vector2 corner in corners)
+        {
+            Ray ray =
+                mainCamera.ViewportPointToRay(
+                    new Vector3(
+                        corner.x,
+                        corner.y,
+                        0f
+                    )
+                );
+
+
+            if (!groundPlane.Raycast(
+                    ray,
+                    out float distance))
+            {
+                return false;
+            }
+
+
+            Vector3 point =
+                ray.GetPoint(distance);
+
+
+            if (point.x < minX ||
+                point.x > maxX ||
+                point.z < minZ ||
+                point.z > maxZ)
+            {
+                return false;
+            }
+        }
+
+
+        return true;
+    }
+    public void MoveCameraAtScreenEdge(Vector2 screenPosition)
+    {
+        if (!CameraContActive)
+            return;
+
+        if (isFollowing)
+            return;
+
+
+        float horizontal = 0f;
+        float vertical = 0f;
+
+
+        // 左端
+        if (screenPosition.x < edgeScrollMargin)
+        {
+            horizontal =
+                -1f +
+                screenPosition.x /
+                edgeScrollMargin;
+        }
+        // 右端
+        else if (screenPosition.x >
+                 Screen.width - edgeScrollMargin)
+        {
+            horizontal =
+                1f -
+                (Screen.width - screenPosition.x) /
+                edgeScrollMargin;
+        }
+
+
+        // 下端
+        if (screenPosition.y < edgeScrollMargin)
+        {
+            vertical =
+                -1f +
+                screenPosition.y /
+                edgeScrollMargin;
+        }
+        // 上端
+        else if (screenPosition.y >
+                 Screen.height - edgeScrollMargin)
+        {
+            vertical =
+                1f -
+                (Screen.height - screenPosition.y) /
+                edgeScrollMargin;
+        }
+
+
+        if (Mathf.Approximately(horizontal, 0f) &&
+            Mathf.Approximately(vertical, 0f))
+        {
+            return;
+        }
+
+
+        // カメラの向きをXZ平面へ投影
+        Vector3 forward =
+            mainCamera.transform.forward;
+
+        forward.y = 0f;
+        forward.Normalize();
+
+
+        Vector3 right =
+            mainCamera.transform.right;
+
+        right.y = 0f;
+        right.Normalize();
+
+
+        Vector3 direction =
+            right * horizontal +
+            forward * vertical;
+        //Debug.Log(direction);
+
+        if (direction.sqrMagnitude > 1f)
+        {
+            direction.Normalize();
+        }
+
+
+        Vector3 newPos =
+            transform.position +
+            direction *
+            edgeScrollSpeed *
+            Time.deltaTime;
+
+
+        newPos.x =
+            Mathf.Clamp(
+                newPos.x,
+                minCameraPos.x,
+                maxCameraPos.x
+            );
+
+        newPos.z =
+            Mathf.Clamp(
+                newPos.z,
+                minCameraPos.y,
+                maxCameraPos.y
+            );
+
+
+        transform.position =
+            newPos;
     }
     void PlaceCameraVirragerBehind()
     {

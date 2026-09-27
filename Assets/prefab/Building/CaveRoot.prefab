@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8877958562866335130}
   - component: {fileID: 3658415736055435089}
+  - component: {fileID: 4276235068911300947}
   m_Layer: 0
   m_Name: CaveRoot
   m_TagString: Untagged
@@ -54,6 +55,19 @@ MonoBehaviour:
   OccupantVillagers: []
   capacity: 0
   amuseneedmaterials: 
+--- !u!114 &4276235068911300947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6960365735186381303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c0b5972563096b49b18c00a021d9fd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entrance: {fileID: 1341725886127216140}
 --- !u!1001 &2959745331263130690
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -116,6 +130,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 16f461ea4228726469accd6311e20b2a, type: 3}
+--- !u!4 &1341725886127216140 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4291336876830251598, guid: 16f461ea4228726469accd6311e20b2a, type: 3}
+  m_PrefabInstance: {fileID: 2959745331263130690}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8668836417524257102 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5863339785985170700, guid: 16f461ea4228726469accd6311e20b2a, type: 3}
