@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using Unity.VisualScripting;
 using UnityEngine;
+using static VillagerBase;
 public class Builder : JobBase
 {
     private GameObject _site;
@@ -22,7 +23,7 @@ public class Builder : JobBase
         if (!TrySetSite()) { GoHome(); return; }
         VB.IsAtHome = false;
         _state = State.GoingMat;
-        Debug.Log("GoforMaterials");
+        //Debug.Log("GoforMaterials");
         GoForMaterials();
     }
 
@@ -159,6 +160,7 @@ public class Builder : JobBase
     }
     void BeginConstruction()
     {
+        SetActivity(VillagerBase.ActivityState.Working);  //働いているので邪魔しないで
         // 手押し車モデルを消して作業アニメへ
         VA.AcceDisActive(VillagerAcceType.Wood);
         _state = State.Building;               //   ← enum State に Building を追加
@@ -169,6 +171,7 @@ public class Builder : JobBase
     }
     IEnumerator InHomeCheck()
     {
+        SetActivity(ActivityState.Idle);
         while (true)
         {
             // 1) 職変更キューが立ったら即座に切り替え

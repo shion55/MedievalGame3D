@@ -23,6 +23,8 @@ public class Miner : JobBase
     }
     private void StartProduce()
     {
+        SetActivity(VillagerBase.ActivityState.Working);
+
         VB.MRender.enabled = false;
 
         StartCoroutine(ProductionProgress());

@@ -67,6 +67,7 @@ public class SawmillWorker : JobBase
     }
     private void StartProduce()
     {
+        SetActivity(VillagerBase.ActivityState.Working);
         VB.MRender.enabled = false;
         VB.buildiingmanager.BuildingStorageUpdate(myJobBuilding, MaterialType.Wood, -1);
         StartCoroutine(ProductionProgress());

@@ -9,8 +9,18 @@ using UnityEngine.AI;
 using UnityEngine.Analytics;
 using static UnityEditor.PlayerSettings;
 
+
+
 public class VillagerBase : MonoBehaviour
 {
+    public enum ActivityState
+    {
+        Idle,
+        Moving,
+        Working,
+        Resting,
+        Blocked
+    }
     [HideInInspector] public static VillagerBase VB { get; private set; }
     [HideInInspector] public TreeManager treemanager;
     [HideInInspector] public BuildingManager buildiingmanager;
@@ -22,6 +32,9 @@ public class VillagerBase : MonoBehaviour
     [HideInInspector] public Anim anim;
     [HideInInspector] public MobManager mobManager;
     [HideInInspector] public FarmManager farmmanager;
+
+    //現在の状態
+    public ActivityState CurrentActivity { get; private set; }
 
     VillagerAcce VA;
     VillagerHappiness VH;
@@ -81,6 +94,9 @@ public class VillagerBase : MonoBehaviour
 
     private Coroutine arrcheck;//バグ防止
     private Coroutine blockedJobChangeWait;
+
+    //音声
+    public AudioSource jobAudioSource;
     private void Awake()
     {
         jobandscript = new Dictionary<Job, JobBase>
@@ -136,6 +152,8 @@ public class VillagerBase : MonoBehaviour
             }
         }
     }*/
+
+    #region 職業変更
     public void JobChange(Job job,GameObject jobbuilding)//statusmanagerから呼び出し
     {
         jobchangeto = job;
@@ -166,21 +184,25 @@ public class VillagerBase : MonoBehaviour
         jobandscript[currentjob].StartMyJob();
         DebugController.Log($"職業変更{jobchangeto}"+"-"+$"{MyIndex.ToString()}");
     }
+    #endregion
+
+    public void SetActivity(ActivityState state)
+    {
+        CurrentActivity = state;
+    }
+
 
     public void DepartToTarget(GameObject target, GoState state)
     {
         //DebugController.Log("DepartTo" + target.name + "ー" + currentjob);
+        SetActivity(ActivityState.Moving);
 
         agent.isStopped = false;
-
-        BuildingAccessPoints accessPoints =target.GetComponentsInChildren<BuildingAccessPoints>()[0];
-
-        if (accessPoints != null &&
-            accessPoints.Entrance != null)
-        {
+        if(target.tag == "Building"){
+            BuildingAccessPoints accessPoints = target.GetComponentsInChildren<BuildingAccessPoints>()[0];
             agent.SetDestination(
-                accessPoints.Entrance.position
-            );
+               accessPoints.Entrance.position
+           );
         }
         else
         {
@@ -259,6 +281,7 @@ public class VillagerBase : MonoBehaviour
             // 歩行アニメのまま止まらないようにする
             MyRenderOn();
 
+            SetActivity(ActivityState.Blocked);//スタック中
             anim.Play(
                 AnimType.Idle
             );
@@ -379,6 +402,7 @@ public class VillagerBase : MonoBehaviour
         agent.enabled = false;
         //marketの挙動↓
         if (hubpoints.Count > 0) {
+            SetActivity(ActivityState.Moving);
             Transform pos = hubpoints[Random.Range(0, hubpoints.Count - 1)];
             anim.Play(AnimType.Walk);
             Vector3 dir = pos.position - this.transform.position;
@@ -390,8 +414,11 @@ public class VillagerBase : MonoBehaviour
             });
             
         }
-        
-        yield return new WaitForSeconds(5);//↑で設定している移動時間も含む
+        else
+        {
+            SetActivity(ActivityState.Resting);
+        }
+            yield return new WaitForSeconds(5);//↑で設定している移動時間も含む
         if(Random.Range(0f,1f) > 0.5f)//50％の確率で休憩終了
         {
             BuildingData data = leisure.GetComponentsInChildren<BuildingData>()[0];
@@ -420,6 +447,7 @@ public class VillagerBase : MonoBehaviour
     }
     public void NoMaterialAndWait(MaterialType material,string placestring)
     {
+        SetActivity(ActivityState.Idle);
         MyRenderOn();
         //正面を向かせる
         Vector3 targetPos = new Vector3(0, transform.position.y,0); // 高さを無視
@@ -522,4 +550,31 @@ public class VillagerBase : MonoBehaviour
         }
         return buildingWithMostMat;
     }
+    #region 音声
+    //一回
+    public void PlayJobAudio(AudioClip clip)
+    {
+        if (clip == null)
+            return;
+
+        jobAudioSource.PlayOneShot(clip);
+    }
+    //ループ＆停止
+    public void StartJobAudioLoop(AudioClip clip)
+    {
+        if (clip == null)
+            return;
+
+        jobAudioSource.clip = clip;
+        jobAudioSource.loop = true;
+        jobAudioSource.Play();
+    }
+
+    public void StopJobAudio()
+    {
+        jobAudioSource.Stop();
+        jobAudioSource.loop = false;
+        jobAudioSource.clip = null;
+    }
+    #endregion
 }

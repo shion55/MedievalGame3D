@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static VillagerBase;
 public class Carrier : JobBase
 {
     private GameObject _takeBuilding;
@@ -123,6 +124,7 @@ public class Carrier : JobBase
   
     IEnumerator CarryToBuilding()
     {
+        SetActivity(VillagerBase.ActivityState.Working);
         yield return new WaitForSeconds(takeTime);
         _state = State.Go_Building_Give;
         Carrying_Acce = Enum.Parse<VillagerAcceType>(Carrying_Material.ToString());
@@ -131,6 +133,7 @@ public class Carrier : JobBase
     }
     IEnumerator GiveToBuilding()
     {
+        SetActivity(VillagerBase.ActivityState.Working);
         MaterialType type = _havingMaterials.type;
         int value = _havingMaterials.value;
         VB.buildiingmanager.BuildingStorageUpdate(_giveBuilding, type, value);
@@ -140,6 +143,7 @@ public class Carrier : JobBase
     }
     IEnumerator InCastleCheck()
     {
+        SetActivity(VillagerBase.ActivityState.Idle);
         while (true)
         {
 

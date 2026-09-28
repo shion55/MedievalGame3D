@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static VillagerBase;
 
 public class Farmer : JobBase
 {
@@ -52,6 +53,8 @@ public class Farmer : JobBase
     }
     IEnumerator FarmWorking(GameObject farm)
     {
+        SetActivity(VillagerBase.ActivityState.Working);
+
         farmRemainBlocks.Remove(farm);
         FarmBlock f = farm.GetComponent<FarmBlock>();
         //そのブロックの進捗状況に合わせてアニメを設定
@@ -153,6 +156,7 @@ public class Farmer : JobBase
     }
     private IEnumerator NoFarmAndWaiting()
     {
+        SetActivity(ActivityState.Idle);
         yield return new WaitForSeconds(0.5f);
         while (true)
         {

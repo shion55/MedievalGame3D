@@ -13,7 +13,7 @@ public class WoodCutter : JobBase
 
     private int havingwoods = 0;
 
-    
+    public AudioClip chopVoice;
 
     public Renderer MyJobBodyRenderes;
 
@@ -25,8 +25,14 @@ public class WoodCutter : JobBase
         myMaterialAcce = Enum.Parse<VillagerAcceType>(myMaterial.ToString());
         base.Awake();
     }
-   
-    
+
+    private void DepartToJobObject()
+    {
+        nearestTree = VB.FindNearestObj(VB.treemanager.currentrees);
+        VB.treemanager.currentrees.Remove(nearestTree);
+        VB.DepartToTarget(nearestTree, VillagerBase.GoState.GoObject);
+        IsGoTree = true;
+    }
     public override void ArriveAtTarget(GameObject cabinortree)
     {
         if (IsGoTree)
@@ -37,22 +43,15 @@ public class WoodCutter : JobBase
         }
         else
         {
-            Debug.Log("木こり小屋到着");
+            //Debug.Log("木こり小屋到着");
             //木こり小屋に着いた
             ArrCabin();
         }
     }
-    private void DepartToJobObject()
-    {
-        nearestTree = VB.FindNearestObj(VB.treemanager.currentrees);
-        VB.treemanager.currentrees.Remove(nearestTree);
-        VB.DepartToTarget(nearestTree, VillagerBase.GoState.GoObject);
-        IsGoTree = true;
-    }
+   
     IEnumerator FinishCut(GameObject tree)
     {
-        VB.anim.Play(AnimType.Chop);
-        VA.AcceActive(VillagerAcceType.Axe);
+        SetActivity(VillagerBase.ActivityState.Working);
 
         //回転をnavmeshから奪う　
         VB.agent.updateRotation = false;
@@ -64,15 +63,24 @@ public class WoodCutter : JobBase
         // 2) Euler 角で直接向きをセット
         float angle = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0f, angle, 0f);
+        ///アニメ＆斧＆音声on
+        VB.anim.Play(AnimType.Chop);
+        VA.AcceActive(VillagerAcceType.Axe);
+       
 
         yield return new WaitForSeconds(produceTime);
+
+     
+
         VB.treemanager.delitetree(nearestTree);//木を消す
         VB.agent.updateRotation = true;
-        VA.AcceDisActive(VillagerAcceType.Axe);
-        VA.AcceActive(myMaterialAcce);
-        VB.anim.Play(AnimType.Carry) ;
+        
         havingwoods++;
         VB.DepartToTarget(myJobBuilding, VillagerBase.GoState.GoCarry);
+
+        VA.AcceDisActive(VillagerAcceType.Axe);
+        VA.AcceActive(myMaterialAcce);
+        VB.anim.Play(AnimType.Carry);
     }
     private void ArrCabin()
     {
@@ -92,5 +100,12 @@ public class WoodCutter : JobBase
     {
         base.ReStartMyJob();
         DepartToJobObject();
+    }
+
+
+
+    public void PlayChopVoice()
+    {
+        VB.PlayJobAudio(chopVoice);
     }
 }

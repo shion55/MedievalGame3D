@@ -79,6 +79,8 @@ public abstract class JobBase : MonoBehaviour, IJob
     //小休憩(職業建物で呼ばれる)
     public virtual IEnumerator TakeAShortBreak()
     {
+        SetActivity(VillagerBase.ActivityState.Resting);
+
         VB.MRender.enabled = false;
         yield return new WaitForSeconds(shortBreakTime);
         VB.MRender.enabled = true;
@@ -104,13 +106,13 @@ public abstract class JobBase : MonoBehaviour, IJob
     
     public virtual void StartLeisure()
     {
-        
+
         StopAllCoroutines();
        
         if (VB.buildiingmanager.AmuseBuildings.Count == 0)
         {
             //余暇建物無し
-            DebugController.Log("NoAmuseBuildingCancel");
+            //DebugController.Log("NoAmuseBuildingCancel");
             CancelLeisure();
             return;
         }
@@ -135,6 +137,9 @@ public abstract class JobBase : MonoBehaviour, IJob
 
     /* ====== IJob 共通インターフェイス ====== */
     public virtual void ArriveAtTarget(GameObject building) { }
-    
-    
+
+    protected void SetActivity(VillagerBase.ActivityState state)
+    {
+        VB.SetActivity(state);
+    }
 }

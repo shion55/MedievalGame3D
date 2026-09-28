@@ -64,6 +64,9 @@ public class Cameracont : MonoBehaviour
     private bool isFollowing = false;
 
     private float prevTouchDist;
+
+    //AudioListner用position
+    public Transform audioListenerPosition;
     void Start()
     {
         SetTPSMode(false);
@@ -79,6 +82,7 @@ public class Cameracont : MonoBehaviour
         if (isFollowing) { 
             FollowTarget();
         }
+        UpdateAudioListenerPosition();
     }
     void MoveCameraSwipe()
     {
@@ -455,5 +459,23 @@ public class Cameracont : MonoBehaviour
         // 元の位置・回転を復帰
         transform.position = originalPosition;
         
+    }
+
+    private void UpdateAudioListenerPosition()
+    {
+        Ray ray = mainCamera.ViewportPointToRay(
+            new Vector3(0.5f, 0.5f, 0f)
+        );
+
+        Plane groundPlane = new Plane(
+            Vector3.up,
+            Vector3.zero
+        );
+
+        if (groundPlane.Raycast(ray, out float distance))
+        {
+            audioListenerPosition.position =
+                ray.GetPoint(distance);
+        }
     }
 }

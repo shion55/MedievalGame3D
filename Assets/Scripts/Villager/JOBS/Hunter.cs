@@ -70,6 +70,7 @@ public class Hunter : JobBase
     //­‘O‚É“’…
     IEnumerator ProductionProgress()
     {
+        SetActivity(VillagerBase.ActivityState.Working);
         //‰ñ“]‚ğnavmesh‚©‚ç’D‚¤@¨@­‚Ì•û‚É‹|‚ğŒü‚¯‚é
         VB.agent.updateRotation = false;
 

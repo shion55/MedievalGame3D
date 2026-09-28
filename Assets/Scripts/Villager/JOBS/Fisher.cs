@@ -33,6 +33,7 @@ public class Fisher : JobBase
         }
     }
     IEnumerator FishingRoutine() {
+        SetActivity(VillagerBase.ActivityState.Working);
         VB.MRender.enabled = true;                                                //ƒŒƒ“ƒ_[‚ğ•t‚¯‚é
         VA.AcceActive(VillagerAcceType.Fisher_Rod);
         VB.anim.Play(AnimType.Fish);
