@@ -10,4 +10,5 @@ public class ConstructionSite : MonoBehaviour
     public ConstBuildingType constBuildingType;
     public Vector3 spownPos;
     public Quaternion spawnRotation;
+    public Vector3 builderPosition;
 }

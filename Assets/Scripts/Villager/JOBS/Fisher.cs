@@ -9,6 +9,8 @@ public class Fisher : JobBase
     private enum State { None, Gobuilding, Building }
     private State _state;
 
+    public AudioClip FishVoice;
+
     protected override void Awake()
     {
         myJob = Job.Fisher;   // ここだけ自分で設定 このスクリプトはfisherですよってこと
@@ -35,10 +37,11 @@ public class Fisher : JobBase
     IEnumerator FishingRoutine() {
         SetActivity(VillagerBase.ActivityState.Working);
         VB.MRender.enabled = true;                                                //レンダーを付ける
-        VA.AcceActive(VillagerAcceType.Fisher_Rod);
+        VAC.AcceActive(VillagerAcceType.Fisher_Rod);
         VB.anim.Play(AnimType.Fish);
         yield return new WaitForSeconds(produceTime);
         VB.anim.Play(AnimType.FishPull);
+        VAU.PlayJobAudio(FishVoice);
         yield return new WaitForSeconds(1.5f);
         FishingDone();
     }
@@ -47,7 +50,7 @@ public class Fisher : JobBase
     {
         VB.WSUIcontroller.ShowMaterialPopUp(MaterialType.Fish, myJobBuilding);　　　　　　　　　//魚表示
         VB.buildiingmanager.BuildingStorageUpdate(myJobBuilding,myMaterial,1);//魚追加
-        VA.AcceDisActive(VillagerAcceType.Fisher_Rod);     //釣り竿を消す
+        VAC.AcceDisActive(VillagerAcceType.Fisher_Rod);     //釣り竿を消す
         if (VB.jobchangeflag)
         {
             VB.MRender.enabled = false;

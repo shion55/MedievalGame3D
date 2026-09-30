@@ -51,6 +51,7 @@ public class VillagerSaveData
 
     public float hungerLevel;
 }
+
 [Serializable]
 public class SaveData
 {
@@ -61,6 +62,8 @@ public class SaveData
 
     public List<VillagerSaveData> villagers =
         new List<VillagerSaveData>();
+    public List<Vector3> farmBlockPositions =
+        new List<Vector3>();
 }
 public class SaveManager : MonoBehaviour
 {
@@ -79,7 +82,8 @@ public class SaveManager : MonoBehaviour
     [SerializeField]
     private ConstructioinManager constructionManager;
 
-
+    [SerializeField]
+    private FarmManager farmManager;
     //村人をロードするとき使う
     private readonly Dictionary<int, GameObject>　loadedBuildings =new Dictionary<int, GameObject>();
     private readonly List<VillagerBase> loadedVillagers = new List<VillagerBase>();
@@ -117,7 +121,7 @@ public class SaveManager : MonoBehaviour
         // 建物を保存
         Dictionary<GameObject, int> buildingIds =
             SaveBuildings(data);
-
+        SaveFarmBlocks(data);
         SaveVillagers(data,buildingIds);
         string json =
             JsonUtility.ToJson(
@@ -173,7 +177,7 @@ public class SaveManager : MonoBehaviour
         );
 
         LoadBuildings(data);
-
+        LoadFarmBlocks(data);
         LoadVillagers(data);
 
         FinishLoad();
@@ -378,7 +382,19 @@ public class SaveManager : MonoBehaviour
             save.id
         );
     }
+    private void SaveFarmBlocks(SaveData data)
+    {
+        foreach (GameObject farm
+                 in farmManager.AllFarmBlocks)
+        {
+            if (farm == null)
+                continue;
 
+            data.farmBlockPositions.Add(
+                farm.transform.position
+            );
+        }
+    }
     private void SaveVillagers(
     SaveData data,
     Dictionary<GameObject, int> buildingIds)
@@ -483,20 +499,25 @@ public class SaveManager : MonoBehaviour
     }
 
 
-    private void LoadBuildings(
-    SaveData data)
+    private void LoadBuildings(SaveData data)
     {
         loadedBuildings.Clear();
 
 
-        // Sceneに最初からある家を取っておく
+        // =========================================================
+        // Sceneに最初から存在するもの
+        // =========================================================
+
         List<GameObject> sceneHouses =
             new List<GameObject>(
                 houseAndVillager.houses
             );
 
 
-        // ロード後のリストを作り直す
+        // =========================================================
+        // ロード後にリストを作り直す
+        // =========================================================
+
         houseAndVillager.houses.Clear();
 
         buildingManager.JobBuildings.Clear();
@@ -507,27 +528,28 @@ public class SaveManager : MonoBehaviour
         int woodCabinIndex = 0;
 
 
-        foreach (BuildingSaveData save
-                 in data.buildings)
+        foreach (BuildingSaveData save in data.buildings)
         {
             GameObject building = null;
 
+            // Houseではnullのまま。
+            // BuildingDataを使う建物だけセットする。
+            BuildingData buildingData = null;
+
 
             // =====================================================
-            // 家
+            // House
+            //
+            // HouseはBuildingDataを使わない
             // =====================================================
 
-            if (save.category ==
-                ConstCategory.House)
+            if (save.category == ConstCategory.House)
             {
-                // Sceneに元からある家が余っていれば再利用
-                if (houseIndex <
-                    sceneHouses.Count)
+                // Sceneに元からあるHouseを再利用
+                if (houseIndex < sceneHouses.Count)
                 {
                     building =
-                        sceneHouses[
-                            houseIndex
-                        ];
+                        sceneHouses[houseIndex];
 
                     building.transform.position =
                         save.position;
@@ -535,6 +557,8 @@ public class SaveManager : MonoBehaviour
                     building.transform.rotation =
                         save.rotation;
                 }
+
+                // 足りなければPrefab生成
                 else
                 {
                     GameObject prefab =
@@ -566,9 +590,10 @@ public class SaveManager : MonoBehaviour
                 );
 
 
-                // 税金用コインがまだ無ければ作る
+                // 税金用コイン
                 House house =
                     building.GetComponent<House>();
+
 
                 if (house != null &&
                     house.Coin == null)
@@ -579,15 +604,27 @@ public class SaveManager : MonoBehaviour
                 }
             }
 
+
             // =====================================================
             // Castle
             // =====================================================
 
-            else if (save.buildingType ==
-                     BuildingType.castle)
+            else if (
+                save.buildingType ==
+                BuildingType.castle)
             {
                 building =
                     buildingManager.Castle;
+
+
+                if (building == null)
+                {
+                    Debug.LogWarning(
+                        "CastleがSceneにありません"
+                    );
+
+                    continue;
+                }
 
 
                 building.transform.position =
@@ -597,22 +634,39 @@ public class SaveManager : MonoBehaviour
                     save.rotation;
 
 
+                buildingData =
+                    building
+                        .GetComponentInChildren<
+                            BuildingData
+                        >();
+
+
                 buildingManager.JobBuildings.Add(
                     building
                 );
             }
 
+
             // =====================================================
-            // 最初からSceneにある木こり小屋
+            // Sceneに元からある木こり小屋
             // =====================================================
 
-            else if (save.buildingType == BuildingType.woodcabin)
+            else if (
+                save.buildingType ==
+                BuildingType.woodcabin)
             {
-                bool reusedExistingCabin = false;
+                bool reusedExistingCabin =
+                    false;
 
-                // Sceneに元からある木こり小屋を再利用
+
+                // ---------------------------------------------
+                // Sceneの既存Prefabを再利用
+                // ---------------------------------------------
+
                 if (woodCabinIndex <
-                    buildingManager.woodmanCabins.Count)
+                    buildingManager
+                        .woodmanCabins
+                        .Count)
                 {
                     building =
                         buildingManager
@@ -620,35 +674,46 @@ public class SaveManager : MonoBehaviour
                                 woodCabinIndex
                             ];
 
+
                     building.transform.position =
                         save.position;
 
                     building.transform.rotation =
                         save.rotation;
 
-                    woodCabinIndex++;
 
-                    reusedExistingCabin = true;
+                    reusedExistingCabin =
+                        true;
                 }
+
+                // ---------------------------------------------
+                // 足りない分は新規生成
+                // ---------------------------------------------
+
                 else
                 {
-                    // 2軒目以降はPrefabから生成
                     var masterData =
                         constructionManager
                             .constbuildingmaster
                             .GetData(
-                                ConstBuildingType.woodcabin
+                                ConstBuildingType
+                                    .woodcabin
                             );
+
 
                     building =
                         Instantiate(
-                            masterData.conbuildingPrefab,
+                            masterData
+                                .conbuildingPrefab,
+
                             save.position,
                             save.rotation,
+
                             constructionManager
                                 .buildingParent
                                 .transform
                         );
+
 
                     buildingManager
                         .woodmanCabins
@@ -656,8 +721,26 @@ public class SaveManager : MonoBehaviour
                 }
 
 
-                BuildingData buildingData =
-                    building.GetComponentsInChildren<BuildingData>()[0];
+                // 再利用でも新規でも1つ消費したので進める
+                woodCabinIndex++;
+
+
+                buildingData =
+                    building
+                        .GetComponentInChildren<
+                            BuildingData
+                        >();
+
+
+                if (buildingData == null)
+                {
+                    Debug.LogWarning(
+                        $"woodcabinにBuildingDataがありません: {building.name}"
+                    );
+
+                    continue;
+                }
+
 
                 buildingData.DataInitialize(
                     ConstCategory.JobBuilding,
@@ -675,25 +758,31 @@ public class SaveManager : MonoBehaviour
                 );
 
 
-                // 新しく生成した木こり小屋だけUI生成
+                // 新しく作ったものだけUI生成
                 if (!reusedExistingCabin)
                 {
                     constructionManager
                         .worldSpaceUIController
                         .GenerateWorldSpaceBuildingUI(
-                            building.transform.position,
+                            building
+                                .transform
+                                .position,
+
                             building
                         );
                 }
             }
+
+
             // =====================================================
-            // それ以外の建物
+            // その他のJobBuilding / AmuseBuilding
             // =====================================================
 
             else
             {
                 if (!System.Enum.TryParse(
-                        save.buildingType.ToString(),
+                        save.buildingType
+                            .ToString(),
                         out ConstBuildingType constType))
                 {
                     Debug.LogWarning(
@@ -715,6 +804,10 @@ public class SaveManager : MonoBehaviour
                 if (masterData == null ||
                     masterData.conbuildingPrefab == null)
                 {
+                    Debug.LogWarning(
+                        $"Prefabが見つかりません: {constType}"
+                    );
+
                     continue;
                 }
 
@@ -730,13 +823,29 @@ public class SaveManager : MonoBehaviour
                     );
 
 
-                BuildingData buildingData =
-                    building.GetComponentsInChildren<BuildingData>()[0];
+                // HouseではないのでここでBuildingDataを取得
+                buildingData =
+                    building
+                        .GetComponentInChildren<
+                            BuildingData
+                        >();
 
 
-                // -------------------------
-                // 職業建物
-                // -------------------------
+                if (buildingData == null)
+                {
+                    Debug.LogWarning(
+                        $"BuildingDataがありません: {building.name}"
+                    );
+
+                    Destroy(building);
+
+                    continue;
+                }
+
+
+                // =================================================
+                // JobBuilding
+                // =================================================
 
                 if (save.category ==
                     ConstCategory.JobBuilding)
@@ -768,8 +877,8 @@ public class SaveManager : MonoBehaviour
 
                     // この職業を利用可能にする
                     if (!statusManager
-                            .availableJobs
-                            .Contains(job))
+                        .availableJobs
+                        .Contains(job))
                     {
                         statusManager
                             .availableJobs
@@ -777,7 +886,7 @@ public class SaveManager : MonoBehaviour
                     }
 
 
-                    // 農場ならFarmManagerにも登録
+                    // FarmBuildingならFarmManagerへ登録
                     if (save.buildingType ==
                         BuildingType.farmbuilding)
                     {
@@ -792,17 +901,22 @@ public class SaveManager : MonoBehaviour
                     constructionManager
                         .worldSpaceUIController
                         .GenerateWorldSpaceBuildingUI(
-                            building.transform.position,
+                            building
+                                .transform
+                                .position,
+
                             building
                         );
                 }
 
-                // -------------------------
-                // 市場など
-                // -------------------------
 
-                else if (save.category ==
-                         ConstCategory.AmuseBuilding)
+                // =================================================
+                // AmuseBuilding
+                // =================================================
+
+                else if (
+                    save.category ==
+                    ConstCategory.AmuseBuilding)
                 {
                     List<MaterialType> materials =
                         new List<MaterialType>()
@@ -823,9 +937,11 @@ public class SaveManager : MonoBehaviour
                     );
 
 
-                    buildingManager.AmuseBuildings.Add(
-                        building
-                    );
+                    buildingManager
+                        .AmuseBuildings
+                        .Add(
+                            building
+                        );
                 }
             }
 
@@ -835,7 +951,9 @@ public class SaveManager : MonoBehaviour
             // =====================================================
 
             if (building == null)
+            {
                 continue;
+            }
 
 
             loadedBuildings[
@@ -845,23 +963,22 @@ public class SaveManager : MonoBehaviour
 
             // =====================================================
             // Storage復元
+            //
+            // HouseはbuildingData == nullなので
+            // ここには入らない
             // =====================================================
 
-            BuildingData loadedData =
-                building.GetComponentsInChildren<BuildingData>()[0];
-
-
-            if (loadedData != null &&
-                loadedData.storage != null)
+            if (buildingData != null &&
+                buildingData.storage != null)
             {
-                // 一旦全部0
+                // 一旦0にする
                 foreach (
                     MaterialType material
                     in System.Enum.GetValues(
                         typeof(MaterialType)
                     ))
                 {
-                    loadedData
+                    buildingData
                         .storage
                         .materials[
                             material
@@ -874,7 +991,7 @@ public class SaveManager : MonoBehaviour
                     MaterialSaveData material
                     in save.storage)
                 {
-                    loadedData
+                    buildingData
                         .storage
                         .materials[
                             material.type
@@ -889,19 +1006,29 @@ public class SaveManager : MonoBehaviour
             $"建物ロード完了: {loadedBuildings.Count}"
         );
     }
+    private void LoadFarmBlocks(
+    SaveData data)
+    {
+        if (data.farmBlockPositions == null)
+            return;
 
+        farmManager.CreateFarmBlocks(
+            data.farmBlockPositions
+        );
+    }
     private void LoadVillagers(
     SaveData data)
     {
         loadedVillagers.Clear();
 
 
-        // =====================================================
+        // =========================================================
         // Sceneに最初からいる村人を削除
-        // =====================================================
+        // =========================================================
 
-        foreach (GameObject villager
-                 in houseAndVillager.villagers)
+        foreach (
+            GameObject villager
+            in houseAndVillager.villagers)
         {
             if (villager != null)
             {
@@ -917,40 +1044,82 @@ public class SaveManager : MonoBehaviour
         statusManager.villagersjob.Clear();
 
 
-        foreach (var pair
-                 in statusManager.jobandvillagers)
+        foreach (
+            var pair
+            in statusManager.jobandvillagers)
         {
             pair.Value.Clear();
         }
 
 
-        // =====================================================
-        // 建物側の所属村人もリセット
-        // =====================================================
+        // =========================================================
+        // JobBuilding側のworkersをリセット
+        //
+        // HouseはBuildingDataを持たないので触らない
+        // =========================================================
 
-        foreach (GameObject building
-                 in loadedBuildings.Values)
+        foreach (
+            GameObject building
+            in buildingManager.JobBuildings)
         {
             if (building == null)
                 continue;
 
 
             BuildingData buildingData =
-                building.GetComponentsInChildren<BuildingData>()[0];
+                building.GetComponentInChildren<
+                    BuildingData
+                >();
 
 
-            if (buildingData != null)
-            {
-                buildingData.workers.Clear();
-                buildingData.OccupantVillagers.Clear();
-            }
+            if (buildingData == null)
+                continue;
+
+
+            buildingData.workers.Clear();
+            buildingData.OccupantVillagers.Clear();
         }
 
 
-        // 各家の住民リストを先に作る
-        foreach (GameObject house
-                 in houseAndVillager.houses)
+        // =========================================================
+        // AmuseBuilding側もOccupantをリセット
+        // =========================================================
+
+        foreach (
+            GameObject building
+            in buildingManager.AmuseBuildings)
         {
+            if (building == null)
+                continue;
+
+
+            BuildingData buildingData =
+                building.GetComponentInChildren<
+                    BuildingData
+                >();
+
+
+            if (buildingData == null)
+                continue;
+
+
+            buildingData.workers.Clear();
+            buildingData.OccupantVillagers.Clear();
+        }
+
+
+        // =========================================================
+        // 各Houseの住民リストを作り直す
+        // =========================================================
+
+        foreach (
+            GameObject house
+            in houseAndVillager.houses)
+        {
+            if (house == null)
+                continue;
+
+
             houseAndVillager.housevillagers[
                 house
             ] =
@@ -958,16 +1127,20 @@ public class SaveManager : MonoBehaviour
         }
 
 
-        // =====================================================
+        // =========================================================
         // 村人生成
-        // =====================================================
+        // =========================================================
 
-        foreach (VillagerSaveData save
-                 in data.villagers)
+        foreach (
+            VillagerSaveData save
+            in data.villagers)
         {
-            // -----------------------------
-            // 家
-            // -----------------------------
+            // =====================================================
+            // House
+            //
+            // HouseはBuildingDataではなく
+            // loadedBuildingsのID対応だけ使う
+            // =====================================================
 
             if (!loadedBuildings.TryGetValue(
                     save.houseId,
@@ -981,9 +1154,9 @@ public class SaveManager : MonoBehaviour
             }
 
 
-            // -----------------------------
+            // =====================================================
             // 保存位置の近くのNavMeshへ補正
-            // -----------------------------
+            // =====================================================
 
             Vector3 spawnPosition =
                 save.position;
@@ -1000,19 +1173,32 @@ public class SaveManager : MonoBehaviour
             }
             else
             {
-                // 保存位置が使えなかったら家へ戻す
-                Transform entrance =
-                    house.transform.Find(
-                        "Entrance"
-                    );
+                // 保存位置が使えなかった場合は
+                // House付近へ戻す
+
+                BuildingAccessPoints accessPoints =
+                    house.GetComponentInChildren<
+                        BuildingAccessPoints
+                    >();
 
 
-                spawnPosition =
-                    entrance != null
-                        ? entrance.position
-                        : house.transform.position;
+                if (accessPoints != null &&
+                    accessPoints.Entrance != null)
+                {
+                    spawnPosition =
+                        accessPoints.Entrance.position;
+                }
+                else
+                {
+                    spawnPosition =
+                        house.transform.position;
+                }
             }
 
+
+            // =====================================================
+            // 村人生成
+            // =====================================================
 
             GameObject villager =
                 Instantiate(
@@ -1026,7 +1212,21 @@ public class SaveManager : MonoBehaviour
 
 
             VillagerBase vb =
-                villager.GetComponent<VillagerBase>();
+                villager.GetComponent<
+                    VillagerBase
+                >();
+
+
+            if (vb == null)
+            {
+                Debug.LogWarning(
+                    $"VillagerBaseがありません: {villager.name}"
+                );
+
+                Destroy(villager);
+
+                continue;
+            }
 
 
             vb.MyIndex =
@@ -1035,15 +1235,15 @@ public class SaveManager : MonoBehaviour
             vb.Myhouse =
                 house;
 
-            // ロード後は仕事を再開させるので
-            // 「家で待機中」扱いにはしない
+
+            // ロード後は仕事を再開する
             vb.IsAtHome =
                 false;
 
 
-            // =================================================
-            // HouseAndVillagerへ登録
-            // =================================================
+            // =====================================================
+            // HouseAndVillager登録
+            // =====================================================
 
             houseAndVillager.villagers.Add(
                 villager
@@ -1056,6 +1256,17 @@ public class SaveManager : MonoBehaviour
                 house;
 
 
+            if (!houseAndVillager
+                .housevillagers
+                .ContainsKey(house))
+            {
+                houseAndVillager.housevillagers[
+                    house
+                ] =
+                    new List<GameObject>();
+            }
+
+
             houseAndVillager.housevillagers[
                 house
             ].Add(
@@ -1063,9 +1274,9 @@ public class SaveManager : MonoBehaviour
             );
 
 
-            // =================================================
+            // =====================================================
             // 空腹度
-            // =================================================
+            // =====================================================
 
             VillagerHappiness happiness =
                 villager.GetComponent<
@@ -1080,9 +1291,9 @@ public class SaveManager : MonoBehaviour
             }
 
 
-            // =================================================
+            // =====================================================
             // 職場
-            // =================================================
+            // =====================================================
 
             GameObject jobBuilding =
                 null;
@@ -1097,9 +1308,9 @@ public class SaveManager : MonoBehaviour
             }
 
 
-            // =================================================
-            // StatusManagerへ登録
-            // =================================================
+            // =====================================================
+            // StatusManager登録
+            // =====================================================
 
             statusManager.villagersjob[
                 villager
@@ -1115,18 +1326,26 @@ public class SaveManager : MonoBehaviour
                     .jobandvillagers[
                         save.job
                     ]
-                    .Add(villager);
+                    .Add(
+                        villager
+                    );
             }
 
 
-            // =================================================
-            // 職場側workers
-            // =================================================
+            // =====================================================
+            // JobBuilding側workersへ登録
+            //
+            // ここではjobBuildingしか来ないので
+            // Houseは関係ない
+            // =====================================================
 
             if (jobBuilding != null)
             {
                 BuildingData buildingData =
-                    jobBuilding.GetComponentsInChildren<BuildingData>()[0];
+                    jobBuilding
+                        .GetComponentInChildren<
+                            BuildingData
+                        >();
 
 
                 if (buildingData != null)
@@ -1135,11 +1354,22 @@ public class SaveManager : MonoBehaviour
                         villager
                     );
                 }
+                else
+                {
+                    Debug.LogWarning(
+                        $"職場にBuildingDataがありません: {jobBuilding.name}"
+                    );
+                }
             }
 
 
-            // JobChangeExecuteはまだしない
-            // NavMeshを作り直してから仕事を開始する
+            // =====================================================
+            // Job設定
+            //
+            // JobChangeExecuteはまだ呼ばない
+            // FinishLoadでNavMesh構築後に開始
+            // =====================================================
+
             vb.JobChange(
                 save.job,
                 jobBuilding

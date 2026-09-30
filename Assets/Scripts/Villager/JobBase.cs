@@ -7,7 +7,8 @@ using UnityEngine.AI;
 public abstract class JobBase : MonoBehaviour, IJob
 {
     protected VillagerBase VB;
-    protected VillagerAcce VA;
+    protected VillagerAcce VAC;
+    protected VillagerAudio VAU;
     protected VillagerHappiness VH;
     protected Job myJob;
     protected GameObject myJobBuilding;
@@ -25,7 +26,8 @@ public abstract class JobBase : MonoBehaviour, IJob
     protected virtual void Awake()
     {
         VB = GetComponent<VillagerBase>();
-        VA = GetComponent<VillagerAcce>();
+        VAC = GetComponent<VillagerAcce>();
+        VAU = GetComponent<VillagerAudio>();
         VH = GetComponent<VillagerHappiness>();
         InitWaitTimes();
     }

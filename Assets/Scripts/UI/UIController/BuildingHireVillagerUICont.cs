@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class BuildingHireVillagerUICont : MonoBehaviour
 {
     UIController UC;
-    //BuildingUIから呼ばれる　　雇用モードの実装です
+    //BuildingUIから呼ばれる　　雇用モードの実装
     public Transform HireHousePopsPa;　　　//親
     public GameObject HireHousePopUIPrefab;//子
     public GameObject VillagerPanelPrefab; //孫
@@ -16,13 +16,15 @@ public class BuildingHireVillagerUICont : MonoBehaviour
 
     public Job HireJob;
     public GameObject HireBuilding;
+
+    public float floatHeight = 4.0f;
     private void Start()
     {
         UC = GetComponent<UIController>();
     }
     public void GenerateHireHousePopUI(Vector3 genposition, GameObject house)//建物が生成された時に呼ばれる,世界空間UIを生成
     {
-        genposition = new Vector3(genposition.x - 1, genposition.y + 6, genposition.z);
+        genposition = new Vector3(genposition.x, genposition.y + floatHeight, genposition.z);
         GameObject hirehousepoppan = Instantiate(HireHousePopUIPrefab, genposition, Quaternion.identity, HireHousePopsPa);//家の上に浮かぶ板を生成
        
         //辞書に登録

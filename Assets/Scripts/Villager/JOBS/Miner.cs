@@ -9,7 +9,7 @@ public class Miner : JobBase
 {
    
     private bool IsGoMyBuilding = true;
-
+    public AudioClip MineVoice;
     protected override void Awake()
     {
         myJob = Job.Miner;   // ここだけ自分で設定 
@@ -27,6 +27,7 @@ public class Miner : JobBase
 
         VB.MRender.enabled = false;
 
+        VAU.StartJobAudioLoop(MineVoice);
         StartCoroutine(ProductionProgress());
     }
     IEnumerator ProductionProgress()
@@ -37,6 +38,7 @@ public class Miner : JobBase
 
     private void FinishProduce()
     {
+        VAU.StopJobAudio();
 
         VB.buildiingmanager.BuildingStorageUpdate(myJobBuilding,myMaterial,1);
         //ポップアップ

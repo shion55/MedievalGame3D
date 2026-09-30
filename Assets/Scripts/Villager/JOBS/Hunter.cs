@@ -14,6 +14,8 @@ public class Hunter : JobBase
     private bool IsGoMyBuilding = true;
     private bool FinishHunt = false;
 
+    public AudioClip VowVoice;
+
     private GameObject mydeer;
     
 
@@ -34,9 +36,10 @@ public class Hunter : JobBase
     {
         if (IsGoMyBuilding && !FinishHunt) {
             VB.MRender.enabled = false;
-            VA.AcceDisActive(myMaterialAcce);
-            StartProduce();
+            VAC.AcceDisActive(myMaterialAcce);
+            
             IsGoMyBuilding = false;
+            StartProduce();
         }
         else if(!IsGoMyBuilding && !FinishHunt)
         {
@@ -44,7 +47,7 @@ public class Hunter : JobBase
         }
         else if(IsGoMyBuilding && FinishHunt)
         {
-            VA.AcceDisActive(myMaterialAcce);
+            VAC.AcceDisActive(myMaterialAcce);
             FinishProduce();
         }
     }
@@ -83,21 +86,22 @@ public class Hunter : JobBase
         angle += 90f;
         transform.rotation = Quaternion.Euler(0f, angle, 0f);
 
-        GameObject bow = VA.AcceType_Objects[VillagerAcceType.Bow];
-        VA.AcceActive(VillagerAcceType.Bow);
+        GameObject bow = VAC.AcceType_Objects[VillagerAcceType.Bow];
+        VAC.AcceActive(VillagerAcceType.Bow);
         bow.GetComponentInChildren<Animator>().SetTrigger("Shoot");
         VB.anim.Play(AnimType.Shoot);
-
+        
         yield return new WaitForSeconds(2f);
 
-        GameObject arrow = Instantiate(VA.ArrowPrefab,bow.transform.position,VA.ArrowPrefab.transform.rotation);
-        yield return StartCoroutine(FlyArrowTo(arrow.transform, mydeer.transform.position, VA.ArrowSpeed, 0.5f));
-        VA.AcceDisActive(VillagerAcceType.Bow); ;
+        GameObject arrow = Instantiate(VAC.ArrowPrefab,bow.transform.position,VAC.ArrowPrefab.transform.rotation);
+        VAU.PlayJobAudio(VowVoice);
+        yield return StartCoroutine(FlyArrowTo(arrow.transform, mydeer.transform.position, VAC.ArrowSpeed, 0.5f));
+        VAC.AcceDisActive(VillagerAcceType.Bow); ;
 
         Vector3 vanisonPos = mydeer.transform.position;
         vanisonPos.y -= 1.5f;
         Destroy(mydeer.gameObject);
-        GameObject vanison = Instantiate(VA.Vanison_TakePrefab,vanisonPos,VA.Vanison_TakePrefab.transform.rotation);
+        GameObject vanison = Instantiate(VAC.Vanison_TakePrefab,vanisonPos,VAC.Vanison_TakePrefab.transform.rotation);
 
         VB.agent.updateRotation = true;
         //Ž­“÷‚Ü‚ÅˆÚ“®
@@ -118,7 +122,7 @@ public class Hunter : JobBase
         Destroy(vanison.gameObject);
         FinishHunt = true;
         IsGoMyBuilding = true;
-        VA.AcceActive(myMaterialAcce); ;
+        VAC.AcceActive(myMaterialAcce); ;
         VB.DepartToTarget(myJobBuilding, VillagerBase.GoState.GoCarry);
     }
     private IEnumerator FlyArrowTo(Transform arrow, Vector3 targetPos, float speed, float arriveThreshold)

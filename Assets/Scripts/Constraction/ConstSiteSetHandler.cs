@@ -35,7 +35,7 @@ public class ConstSiteSetHandler : MonoBehaviour
 
     [Tooltip("建設予定地同士を少し離す余白")]
     [SerializeField]
-    private float constructionSiteMargin = 0.3f;
+    private float constructionSiteMargin = 1.5f;
 
     [Header("設置不可判定")]
     [SerializeField]

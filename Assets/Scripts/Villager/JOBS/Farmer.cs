@@ -11,9 +11,12 @@ public class Farmer : JobBase
     private List<GameObject> farmRemainBlocks = new List<GameObject>();
 
     private bool IsGoFarm = false;
-    private int FarmProgress = 0;
+    //private int FarmProgress = 0;
     private int havingcarrot = 0;
 
+    public AudioClip SowVoice;
+    public AudioClip WateringVoice;
+    public AudioClip PlowVoice;
     private enum State { None,Working,InBuilding};
     private State state;
 
@@ -53,6 +56,14 @@ public class Farmer : JobBase
     }
     IEnumerator FarmWorking(GameObject farm)
     {
+        Vector3 dir =farm.transform.position - transform.position;
+
+        dir.y = 0f;
+
+        if (dir.sqrMagnitude > 0.001f)
+        {
+            transform.rotation = Quaternion.LookRotation(dir);
+        }
         SetActivity(VillagerBase.ActivityState.Working);
 
         farmRemainBlocks.Remove(farm);
@@ -61,18 +72,23 @@ public class Farmer : JobBase
         switch (f.currentStage)
         {
             case 0:
-                VB.anim.Play(AnimType.Plow);                
+                VB.anim.Play(AnimType.Plow);
+                VAC.AcceActive(VillagerAcceType.Hoe);
+                //VAU.PlayJobAudio(PlowVoice);
                 break;
             case 1:
                 VB.anim.Play(AnimType.FarmSeed);
+                VAU.PlayJobAudio(SowVoice);
                 break;
             case 2:
-                VA.AcceActive(VillagerAcceType.WateringCan);
+                VAC.AcceActive(VillagerAcceType.WateringCan);
                 VB.anim.Play(AnimType.FarmWater);
+                VAU.PlayJobAudio(WateringVoice);
                 break;
             case 3:
-                VA.AcceActive(VillagerAcceType.WateringCan);
+                VAC.AcceActive(VillagerAcceType.WateringCan);
                 VB.anim.Play(AnimType.FarmWater);
+                VAU.PlayJobAudio(WateringVoice);
                 break;
             case 4:
                 VB.anim.Play(AnimType.FarmPick);
@@ -80,7 +96,7 @@ public class Farmer : JobBase
                 break;
         }
         yield return new WaitForSeconds(produceTime);
-        VA.AllAcceOff();
+        VAC.AllAcceOff();
         //ブロックの状態を更新
         f.SetStage(f.currentStage);
         //次のブロックに行く
@@ -97,7 +113,9 @@ public class Farmer : JobBase
     
     private void ArrFarmCabin()
     {
-        VA.AcceDisActive(myMaterialAcce);
+        VB.anim.Play(AnimType.Idle);
+
+        VAC.AcceDisActive(myMaterialAcce);
         switch (state)
         {
             case State.None:
@@ -113,7 +131,8 @@ public class Farmer : JobBase
                     farmRemainBlocks.Clear();
                     farmRemainBlocks.AddRange(farmBlocks);
                     GameObject nearestfarm = VB.FindNearestObj(farmBlocks);
-                    VB.DepartToTarget(nearestfarm, VillagerBase.GoState.GoObject);
+                    FarmBlock farmBlock = nearestfarm.GetComponent<FarmBlock>();
+                    VB.DepartToTarget(nearestfarm, VillagerBase.GoState.GoObject,farmBlock.WorkPoint.position);
                     break;
                 }
             case State.Working:
@@ -151,7 +170,8 @@ public class Farmer : JobBase
             farmRemainBlocks.Clear();
             farmRemainBlocks.AddRange(farmBlocks);
             GameObject nearestfarm = VB.FindNearestObj(farmBlocks);
-            VB.DepartToTarget(nearestfarm, VillagerBase.GoState.GoObject);
+            FarmBlock nextFarm = nearestfarm.GetComponent<FarmBlock>();
+            VB.DepartToTarget(nearestfarm, VillagerBase.GoState.GoObject,nextFarm.WorkPoint.position);
         }
     }
     private IEnumerator NoFarmAndWaiting()

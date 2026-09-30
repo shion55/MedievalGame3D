@@ -128,7 +128,7 @@ public class Carrier : JobBase
         yield return new WaitForSeconds(takeTime);
         _state = State.Go_Building_Give;
         Carrying_Acce = Enum.Parse<VillagerAcceType>(Carrying_Material.ToString());
-        VA.AcceType_Renderer[Carrying_Acce].enabled = true;
+        VAC.AcceType_Renderer[Carrying_Acce].enabled = true;
         VB.DepartToTarget(_giveBuilding, VillagerBase.GoState.GoCarry);
     }
     IEnumerator GiveToBuilding()
@@ -137,7 +137,7 @@ public class Carrier : JobBase
         MaterialType type = _havingMaterials.type;
         int value = _havingMaterials.value;
         VB.buildiingmanager.BuildingStorageUpdate(_giveBuilding, type, value);
-        VA.AcceType_Renderer[Carrying_Acce].enabled = false;
+        VAC.AcceType_Renderer[Carrying_Acce].enabled = false;
         yield return new WaitForSeconds(produceTime);
         Interrupt();
     }

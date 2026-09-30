@@ -10,7 +10,7 @@ public class SawmillWorker : JobBase
     private int Progressint = 0;
 
     private MaterialType MyNeedMaterial = MaterialType.Wood;
-
+    public AudioClip sawVoice;
     protected override void Awake()
     {
         myJob = Job.SawmillWorker;   // Ç±Ç±ÇæÇØé©ï™Ç≈ê›íË 
@@ -23,7 +23,7 @@ public class SawmillWorker : JobBase
         if (IsGoMyBuilding)
         {
             //êªî¬èäÇ…íÖÇ¢ÇΩ
-            VA.AcceDisActive(VillagerAcceType.Wood);
+            VAC.AcceDisActive(VillagerAcceType.Wood);
             IsGoMyBuilding = false;
             
             BuildingData data = Building.GetComponentsInChildren<BuildingData>()[0];
@@ -62,7 +62,7 @@ public class SawmillWorker : JobBase
         yield return new WaitForSeconds(takeTime);
         VB.buildiingmanager.BuildingStorageUpdate(myJobBuilding,MaterialType.Wood,1);
         IsGoMyBuilding = true;
-        VA.AcceActive(VillagerAcceType.Wood);
+        VAC.AcceActive(VillagerAcceType.Wood);
         VB.DepartToTarget(myJobBuilding, VillagerBase.GoState.GoCarry);      
     }
     private void StartProduce()
@@ -70,6 +70,9 @@ public class SawmillWorker : JobBase
         SetActivity(VillagerBase.ActivityState.Working);
         VB.MRender.enabled = false;
         VB.buildiingmanager.BuildingStorageUpdate(myJobBuilding, MaterialType.Wood, -1);
+
+        //âπÇénÇﬂÇÈ
+        VAU.StartJobAudioLoop(sawVoice);
         StartCoroutine(ProductionProgress());
     }
     //êiíªUIÇëÄçÏ
@@ -92,6 +95,8 @@ public class SawmillWorker : JobBase
     private void FinishProduce()
     {
       
+        //âπé~ÇﬂÇÈ
+        VAU.StopJobAudio();
         VB.buildiingmanager.BuildingStorageUpdate(myJobBuilding,myMaterial,1);
         VB.WSUIcontroller.ShowMaterialPopUp(myMaterial,myJobBuilding);
 

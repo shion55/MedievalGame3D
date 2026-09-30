@@ -6,56 +6,198 @@ using UnityEngine.AI;
 
 public class Deer : MonoBehaviour
 {
-    public float roamDistance = 10f;     // 移動先との距離
+    [Header("移動")]
+    public float roamDistance = 30f;
     public float stoppingDistance = 0.3f;
-    private Vector3 pointA; // 初期位置
-    private Vector3 pointB; // 離れた移動先
-    private bool goingToB = true;
+
+    [Header("スタック対策")]
+    public float stuckCheckTime = 2f;
+    public float stuckVelocity = 0.05f;
 
     private NavMeshAgent agent;
     private Animator animator;
- 
 
-    void OnEnable()
+    private float stuckTimer = 0f;
+
+
+    private void OnEnable()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
-        animator.SetBool("isWalking", true);
-    }
-    void Start()
-    {
-        pointA = transform.position;
-        pointB = GetRandomPointNearby(pointA, roamDistance);
 
-        agent.SetDestination(pointB);
+        // 鹿ごとに優先順位を変える
+        // 数字が小さいほど優先される
+        agent.avoidancePriority =
+            Random.Range(20, 80);
+
+        // 鹿同士をなるべく回避
+        agent.obstacleAvoidanceType =
+            ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+
+        animator.SetBool(
+            "isWalking",
+            true
+        );
     }
-    void Update()
+
+
+    private void Start()
     {
-        if (!agent.pathPending && agent.remainingDistance <= stoppingDistance)
+        TrySetRandomDestination();
+    }
+
+
+    private void Update()
+    {
+        if (!agent.enabled ||
+            !agent.isOnNavMesh)
         {
-            if (goingToB)
-                agent.SetDestination(pointA);
+            return;
+        }
+
+
+        // -------------------------
+        // 到着
+        // -------------------------
+
+        if (!agent.pathPending &&
+            agent.hasPath &&
+            agent.remainingDistance <=
+                stoppingDistance)
+        {
+            TrySetRandomDestination();
+            return;
+        }
+
+
+        // -------------------------
+        // スタック判定
+        // -------------------------
+
+        if (!agent.pathPending &&
+            agent.hasPath &&
+            agent.remainingDistance >
+                stoppingDistance)
+        {
+            if (agent.velocity.magnitude <
+                stuckVelocity)
+            {
+                stuckTimer +=
+                    Time.deltaTime;
+            }
             else
-                agent.SetDestination(pointB);
+            {
+                stuckTimer = 0f;
+            }
 
-            goingToB = !goingToB;
+
+            // 一定時間ほぼ動いていなかった
+            if (stuckTimer >=
+                stuckCheckTime)
+            {
+                ResolveStuck();
+            }
         }
-        animator.SetBool("isWalking", agent.velocity.magnitude > 0.1f);
-    }
-
-    Vector3 GetRandomPointNearby(Vector3 origin, float distance)
-    {
-        Vector3 randomDir = Random.insideUnitSphere * distance;
-        randomDir.y = 0f;
-        Vector3 rawPos = origin + randomDir;
-
-        NavMeshHit hit;
-        if (NavMesh.SamplePosition(rawPos, out hit, distance, NavMesh.AllAreas))
+        else
         {
-            return hit.position;
+            stuckTimer = 0f;
         }
 
-        return origin; // fallback
+
+        // -------------------------
+        // アニメーション
+        // -------------------------
+
+        animator.SetBool(
+            "isWalking",
+            agent.velocity.magnitude > 0.1f
+        );
     }
 
+
+    private void ResolveStuck()
+    {
+        stuckTimer = 0f;
+
+        // 優先順位を変えて
+        // 膠着状態を崩す
+        agent.avoidancePriority =
+            Random.Range(20, 80);
+
+        agent.ResetPath();
+
+        TrySetRandomDestination();
+    }
+
+
+    private bool TrySetRandomDestination()
+    {
+        const int maxAttempts = 10;
+
+
+        for (int i = 0;
+             i < maxAttempts;
+             i++)
+        {
+            Vector2 randomCircle =
+                Random.insideUnitCircle *
+                roamDistance;
+
+
+            Vector3 randomPosition =
+                transform.position +
+                new Vector3(
+                    randomCircle.x,
+                    0f,
+                    randomCircle.y
+                );
+
+
+            // ランダム地点付近のNavMeshを探す
+            if (!NavMesh.SamplePosition(
+                    randomPosition,
+                    out NavMeshHit hit,
+                    2f,
+                    NavMesh.AllAreas))
+            {
+                continue;
+            }
+
+
+            // 「NavMesh上にある」だけでなく、
+            // 今いる位置から本当に到達可能か確認
+            NavMeshPath path =
+                new NavMeshPath();
+
+
+            if (!agent.CalculatePath(
+                    hit.position,
+                    path))
+            {
+                continue;
+            }
+
+
+            if (path.status !=
+                NavMeshPathStatus.PathComplete)
+            {
+                continue;
+            }
+
+
+            agent.SetDestination(
+                hit.position
+            );
+
+            stuckTimer = 0f;
+
+            return true;
+        }
+
+
+        // 移動先が見つからなかった
+        agent.ResetPath();
+
+        return false;
+    }
 }

@@ -54,7 +54,8 @@ public class VillagerBase : MonoBehaviour
     static readonly int ClothColorID = Shader.PropertyToID("_ClothColor");
     static MaterialPropertyBlock mpb;   // 使い回し
 
-    
+
+
     //職業変更　
     [HideInInspector] public Job jobchangeto;
     [HideInInspector] private Job currentjob;
@@ -91,12 +92,14 @@ public class VillagerBase : MonoBehaviour
     //自分の村人index
     public int MyIndex;
 
+    //leisure
+    private Transform currentLeisurePoint;
+    private bool leisureActive = false;
 
     private Coroutine arrcheck;//バグ防止
     private Coroutine blockedJobChangeWait;
 
-    //音声
-    public AudioSource jobAudioSource;
+   
     private void Awake()
     {
         jobandscript = new Dictionary<Job, JobBase>
@@ -192,24 +195,54 @@ public class VillagerBase : MonoBehaviour
     }
 
 
-    public void DepartToTarget(GameObject target, GoState state)
+    public void DepartToTarget(GameObject target, GoState state, Vector3? overrideDestination = null)
     {
-        //DebugController.Log("DepartTo" + target.name + "ー" + currentjob);
+        DebugController.Log("DepartTo" + target.name + "ー" + currentjob);
         SetActivity(ActivityState.Moving);
 
-        agent.isStopped = false;
-        if(target.tag == "Building"){
-            BuildingAccessPoints accessPoints = target.GetComponentsInChildren<BuildingAccessPoints>()[0];
-            agent.SetDestination(
-               accessPoints.Entrance.position
-           );
+        
+
+        Vector3 destination;
+        if (overrideDestination.HasValue)
+        {
+            destination = overrideDestination.Value;
         }
+        else if (target.tag == "Building"||target.tag == "Castle" || target.tag == "House"){
+            BuildingAccessPoints accessPoints = target.GetComponentsInChildren<BuildingAccessPoints>()[0];
+            destination = accessPoints.Entrance.position;
+        }
+    
         else
         {
-            agent.SetDestination(
-                target.transform.position
-            );
+            destination = target.transform.position;
         }
+        //すでに到着済みの場合
+        if (Vector3.Distance(transform.position,destination) <= ArriveRadius)
+        {
+            Debug.Log("すでに目的地に到着済み");
+            if (state == GoState.GoJobBuilding ||
+                state == GoState.GoCarry)
+            {
+                MyRenderOff();
+                jobandscript[currentjob]
+                    .ArriveAtTarget(target);
+            }
+            else if (state == GoState.GoObject)
+            {
+                jobandscript[currentjob]
+                    .ArriveAtTarget(target);
+            }
+            else if (state == GoState.GoLeisure)
+            {
+                StartCoroutine(
+                    StartLeisure(target)
+                );
+            }
+            return;
+        }
+
+        agent.isStopped = false;
+        agent.SetDestination(destination);
 
         StartCoroutine(ShowAfterFacingDirection(state));//向きとアニメを調整
 
@@ -328,6 +361,7 @@ public class VillagerBase : MonoBehaviour
         agent.isStopped = true;
         arrcheck = null;
 
+        anim.Play(AnimType.Idle);
         if (state == GoState.GoJobBuilding ||
             state == GoState.GoCarry)
         {
@@ -390,56 +424,330 @@ public class VillagerBase : MonoBehaviour
             yield return null;
         }
     }
-    IEnumerator StartLeisure (GameObject leisure)
+    IEnumerator StartLeisure(GameObject leisure)
     {
-        List<Transform> hubpoints = new List<Transform>();
-        foreach(Transform child in leisure.transform)
+        // 同じ村人でLeisureが二重起動するのを防ぐ
+        if (leisureActive)
         {
-            if(child.name == "HubPoint") { 
-                hubpoints.Add(child);
+            Debug.LogWarning(
+                $"Leisure二重起動: {gameObject.name}"
+            );
+
+            yield break;
+        }
+
+        leisureActive = true;
+
+        BuildingAccessPoints accessPoints =
+            leisure.GetComponentInChildren<BuildingAccessPoints>();
+
+        if (accessPoints == null)
+        {
+            leisureActive = false;
+            yield break;
+        }
+
+
+        // =====================================================
+        // 本当にEntranceまで到着しているか確認
+        // =====================================================
+
+        Transform entrance =
+            accessPoints.Entrance;
+
+        if (entrance == null)
+        {
+            leisureActive = false;
+            yield break;
+        }
+
+
+        Vector3 entranceCheckPos =
+            entrance.position;
+
+        entranceCheckPos.y =
+            transform.position.y;
+
+
+        float distanceFromEntrance =
+            Vector3.Distance(
+                transform.position,
+                entranceCheckPos
+            );
+
+
+        if (distanceFromEntrance >
+            ArriveRadius + 0.5f)
+        {
+            Debug.LogWarning(
+                $"Entrance到着前にStartLeisureが呼ばれました " +
+                $"distance={distanceFromEntrance}"
+            );
+
+            leisureActive = false;
+            yield break;
+        }
+
+
+        // =====================================================
+        // ここからMarket内部
+        // =====================================================
+
+        agent.enabled = false;
+
+        // 新しいMarket滞在なので前回値を捨てる
+        currentLeisurePoint = null;
+
+
+        List<Transform> hubpoints =
+            new List<Transform>();
+
+        foreach (
+            Transform point
+            in accessPoints.LeisurePoints)
+        {
+            if (point != null)
+            {
+                hubpoints.Add(point);
             }
         }
-        agent.enabled = false;
-        //marketの挙動↓
-        if (hubpoints.Count > 0) {
-            SetActivity(ActivityState.Moving);
-            Transform pos = hubpoints[Random.Range(0, hubpoints.Count - 1)];
-            anim.Play(AnimType.Walk);
-            Vector3 dir = pos.position - this.transform.position;
-            dir.y= 0f;
-            this.transform.rotation = Quaternion.LookRotation(dir);
-            this.transform.DOMove(new Vector3(pos.position.x, this.transform.position.y, pos.position.z), 3f).OnComplete(() =>
+
+
+        // =====================================================
+        // Market内を滞在
+        // =====================================================
+
+        bool continueLeisure = true;
+
+        while (continueLeisure)
+        {
+            if (hubpoints.Count == 0)
             {
-                anim.Play(AnimType.LookPoint);
-            });
-            
-        }
-        else
-        {
-            SetActivity(ActivityState.Resting);
-        }
-            yield return new WaitForSeconds(5);//↑で設定している移動時間も含む
-        if(Random.Range(0f,1f) > 0.5f)//50％の確率で休憩終了
-        {
-            BuildingData data = leisure.GetComponentsInChildren<BuildingData>()[0];
-            data.OccupantVillagers.Remove(this.gameObject);
-            anim.Play(AnimType.Walk);
-            Transform entrance = leisure.transform.Find("Entrance");
-            this.transform.LookAt(entrance,transform.up);
-            this.transform.DOMove(new Vector3(entrance.position.x, this.transform.position.y, entrance.position.z), 3f).OnComplete(() =>
+                SetActivity(
+                    ActivityState.Resting
+                );
+
+                anim.Play(
+                    AnimType.LookPoint
+                );
+
+                yield return new WaitForSeconds(2f);
+            }
+
+            else
             {
-                agent.enabled = true;
-                jobandscript[currentjob].StartMyJob();
-            });
-            VH.HungerLevelUpdate(50f);//一度に増やす満腹度
+                // =============================================
+                // 前回とは違うHubPointを候補にする
+                // =============================================
+
+                List<Transform> candidates =
+                    new List<Transform>();
+
+
+                foreach (Transform point in hubpoints)
+                {
+                    if (point != currentLeisurePoint)
+                    {
+                        candidates.Add(point);
+                    }
+                }
+
+
+                // HubPointが1個しかない場合
+                if (candidates.Count == 0)
+                {
+                    candidates.AddRange(
+                        hubpoints
+                    );
+                }
+
+
+                Transform pos =
+                    candidates[
+                        Random.Range(
+                            0,
+                            candidates.Count
+                        )
+                    ];
+
+
+                currentLeisurePoint =
+                    pos;
+
+
+                Vector3 targetPosition =
+                    pos.position;
+
+                targetPosition.y =
+                    transform.position.y;
+
+
+                float distance =
+                    Vector3.Distance(
+                        transform.position,
+                        targetPosition
+                    );
+
+
+                // =============================================
+                // 本当に移動が必要なときだけ歩く
+                // =============================================
+
+                if (distance > 0.15f)
+                {
+                    SetActivity(
+                        ActivityState.Moving
+                    );
+
+
+                    Vector3 dir =
+                        targetPosition -
+                        transform.position;
+
+                    dir.y = 0f;
+
+
+                    if (dir.sqrMagnitude >
+                        0.001f)
+                    {
+                        transform.rotation =
+                            Quaternion.LookRotation(
+                                dir
+                            );
+                    }
+
+
+                    anim.Play(
+                        AnimType.Walk
+                    );
+
+
+                    // WalkへのCrossFadeを少し待つ
+                    yield return new WaitForSeconds(
+                        0.15f
+                    );
+
+
+                    Tween moveTween =
+                        transform.DOMove(
+                            targetPosition,
+                            3f
+                        );
+
+
+                    // 移動が終わるまで次へ進まない
+                    yield return
+                        moveTween.WaitForCompletion();
+                }
+
+
+                // =============================================
+                // HubPointで滞在
+                // =============================================
+
+                SetActivity(
+                    ActivityState.Resting
+                );
+
+                anim.Play(
+                    AnimType.LookPoint
+                );
+
+
+                yield return new WaitForSeconds(
+                    2f
+                );
+            }
+
+
+            // 50%でMarketを出る
+            continueLeisure =
+                Random.Range(0f, 1f) <= 0.5f;
         }
-        else
+
+
+        // =====================================================
+        // Marketを出る
+        // =====================================================
+
+        BuildingData data =
+            leisure.GetComponentInChildren<BuildingData>();
+
+
+        if (data != null)
         {
-            StartCoroutine(StartLeisure(leisure));  //休憩続行
+            data.OccupantVillagers.Remove(
+                gameObject
+            );
         }
+
+
+        SetActivity(
+            ActivityState.Moving
+        );
+
+
+        Vector3 exitPosition =
+            entrance.position;
+
+        exitPosition.y =
+            transform.position.y;
+
+
+        Vector3 exitDir =
+            exitPosition -
+            transform.position;
+
+        exitDir.y = 0f;
+
+
+        if (exitDir.sqrMagnitude >
+            0.001f)
+        {
+            transform.rotation =
+                Quaternion.LookRotation(
+                    exitDir
+                );
+        }
+
+
+        anim.Play(
+            AnimType.Walk
+        );
+
+
+        yield return new WaitForSeconds(
+            0.15f
+        );
+
+
+        Tween exitTween =
+            transform.DOMove(
+                exitPosition,
+                3f
+            );
+
+
+        // Entranceまで出終わるまで待つ
+        yield return
+            exitTween.WaitForCompletion();
+
+
+        currentLeisurePoint = null;
+
+        agent.enabled = true;
+
+        leisureActive = false;
+
+
+        VH.HungerLevelUpdate(
+            50f
+        );
+
+
+        jobandscript[currentjob]
+            .StartMyJob();
     }
-
-
     //進捗UIの操作
     public void CallChangeProgressUI(GameObject building,int progress)
     {
@@ -550,31 +858,5 @@ public class VillagerBase : MonoBehaviour
         }
         return buildingWithMostMat;
     }
-    #region 音声
-    //一回
-    public void PlayJobAudio(AudioClip clip)
-    {
-        if (clip == null)
-            return;
-
-        jobAudioSource.PlayOneShot(clip);
-    }
-    //ループ＆停止
-    public void StartJobAudioLoop(AudioClip clip)
-    {
-        if (clip == null)
-            return;
-
-        jobAudioSource.clip = clip;
-        jobAudioSource.loop = true;
-        jobAudioSource.Play();
-    }
-
-    public void StopJobAudio()
-    {
-        jobAudioSource.Stop();
-        jobAudioSource.loop = false;
-        jobAudioSource.clip = null;
-    }
-    #endregion
+   
 }

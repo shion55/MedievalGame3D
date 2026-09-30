@@ -5,6 +5,10 @@ using UnityEngine;
 public class FarmBlock : MonoBehaviour
 {
     public GameObject[] vegetableStages;
+    [SerializeField]
+    private Transform workPoint;
+
+    public Transform WorkPoint => workPoint;
 
     public int currentStage = 0;
 

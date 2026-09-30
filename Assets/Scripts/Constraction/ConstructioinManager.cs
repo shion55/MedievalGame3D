@@ -99,6 +99,31 @@ public class ConstructioinManager : MonoBehaviour
         data.spownPos = snapPos;
         data.spawnRotation = spawnRotation;
         data.smoke = SmokeObject;
+        //builderの安全な立ち位置を決める処理↓
+        GameObject buildingPrefab =constbuildingmaster.GetData(type).conbuildingPrefab;
+
+        BuildingAccessPoints accessPoints =
+            buildingPrefab.GetComponentInChildren<BuildingAccessPoints>();
+
+        if (accessPoints != null &&
+            accessPoints.Entrance != null)
+        {
+            // Entranceの「建物Rootから見たローカル位置」
+            Vector3 localEntrancePosition =
+                buildingPrefab.transform.InverseTransformPoint(
+                    accessPoints.Entrance.position
+                );
+
+            // 実際の建築位置・回転に変換
+            data.builderPosition =
+                snapPos +
+                spawnRotation * localEntrancePosition;
+        }
+        else
+        {
+            // Entranceが無い建物は従来どおり中心
+            data.builderPosition = snapPos;
+        }
     }
     public void StartConstuction(GameObject site,GameObject builder)//パーティクルの処理等
     {

@@ -47,7 +47,7 @@ public class ObjectTapHandler : MonoBehaviour
                 return;
             }
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit) && !uiController.UIOPEN)
+            if (Physics.Raycast(ray, out RaycastHit hit,Mathf.Infinity) && !uiController.UIOPEN)
             {
                 switch (hit.collider.gameObject.tag)
                 {
@@ -66,21 +66,46 @@ public class ObjectTapHandler : MonoBehaviour
             }
         }
     }
-    private void HouseIsTapped(GameObject house)
+    private void HouseIsTapped(GameObject tappedObject)
     {
+        House house =
+         tappedObject.GetComponentInParent<House>();
+
+        if (house == null)
+            return;
+
+        GameObject houseRoot = house.myobj;
+
         if (JobChangeHouseTap)
         {
-            uiController.buildinghirevillagerUIcont.OpenHireHousePop(house);
+            uiController.buildinghirevillagerUIcont
+                .OpenHireHousePop(houseRoot);
         }
         else
         {
-            uiController.OpenUIFromTap(house, UIENUM.House);
+            uiController.OpenUIFromTap(
+                houseRoot,
+                UIENUM.House
+            );
         }
+
     }
-    private void BuildingIsTapped(GameObject building)
+    private void BuildingIsTapped(GameObject tappedObject)
     {
-        Debug.Log("buildingistapped" + building.name);
-        uiController.OpenUIFromTap(building, UIENUM.Building);
+        BuildingData data =
+        tappedObject.GetComponentInParent<BuildingData>();
+
+        if (data == null)
+            return;
+
+        GameObject buildingRoot = data.building;
+
+        Debug.Log("buildingistapped " + buildingRoot.name);
+
+        uiController.OpenUIFromTap(
+            buildingRoot,
+            UIENUM.Building
+        );
     }
     private void CastleIsTapped(GameObject castle)
     {
@@ -98,8 +123,14 @@ public class ObjectTapHandler : MonoBehaviour
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 if (hit.collider.gameObject.tag == "House") // "House" タグがついたオブジェクトを判定
-                {                  
-                    uiController.buildinghirevillagerUIcont.OpenHireHousePop(hit.collider.gameObject);
+                {
+                    House house = hit.collider.gameObject.GetComponentInParent<House>();
+
+                    if (house == null)
+                        return;
+
+                    GameObject houseRoot = house.myobj;
+                    uiController.buildinghirevillagerUIcont.OpenHireHousePop(houseRoot);
                 }               
             }
         }

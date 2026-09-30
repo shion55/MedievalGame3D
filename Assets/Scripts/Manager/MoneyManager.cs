@@ -34,7 +34,7 @@ public class MoneyManager : MonoBehaviour
     }
     public void GenerateCoin(GameObject house)
     {
-        House HOUSE = house.GetComponent<House>();
+        House HOUSE = house.GetComponentInChildren<House>();
         Vector3 pos = house.transform.position;
         pos.x -= 0.5f;
         Vector3 genpos = pos;
@@ -42,9 +42,9 @@ public class MoneyManager : MonoBehaviour
     }
     public void CollectTax(GameObject house)//Ç®ã‡ÇÃà⁄ìÆèàóù
     {
-        House HOUSE = house.GetComponent<House>();
+        House HOUSE = house.GetComponentInChildren<House>();
         GameObject coin = HOUSE.Coin;
-        MeshRenderer coinRender = coin.GetComponent<MeshRenderer>();
+        MeshRenderer coinRender = coin.GetComponentInChildren<MeshRenderer>();
 
         if( coinRender.enabled == false)
         {

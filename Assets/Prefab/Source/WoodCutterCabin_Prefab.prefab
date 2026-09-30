@@ -352,6 +352,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   entrance: {fileID: 6362166420265375874}
+  fishingPoint: {fileID: 0}
 --- !u!4 &998728788279765687 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f328aae6001d99b4dbd350739ec03525, type: 3}

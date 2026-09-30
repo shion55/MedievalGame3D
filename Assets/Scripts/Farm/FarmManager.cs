@@ -5,13 +5,61 @@ using UnityEngine;
 
 public class FarmManager : MonoBehaviour
 {
+    [SerializeField]
+    private GameObject farmBlockPrefab;
+
+    [SerializeField]
+    private Transform farmBlockParent;
+
     public Dictionary<GameObject,List<GameObject>> FarmBuilding__FarmBlocks = new Dictionary<GameObject, List<GameObject>>();
+
     private List<GameObject> FarmBuildings = new List<GameObject>();
+
     private List<GameObject> FarmBlocks = new List<GameObject>();
+    public IReadOnlyList<GameObject> AllFarmBlocks => FarmBlocks;
     private List<GameObject> WaitingFarms = new List<GameObject>();
     private int FarmBlock_PerBuilding = 20;
+
+    public GameObject CreateFarmBlock(Vector3 position)
+    {
+        GameObject farm =
+            Instantiate(
+                farmBlockPrefab,
+                position,
+                Quaternion.identity,
+                farmBlockParent
+            );
+
+        FarmBlockAdd(
+            new List<GameObject> { farm }
+        );
+
+        return farm;
+    }
+    public void CreateFarmBlocks(
+    List<Vector3> positions)
+    {
+        List<GameObject> farms =
+            new List<GameObject>();
+
+        foreach (Vector3 position in positions)
+        {
+            GameObject farm =
+                Instantiate(
+                    farmBlockPrefab,
+                    position,
+                    Quaternion.identity,
+                    farmBlockParent
+                );
+
+            farms.Add(farm);
+        }
+
+        FarmBlockAdd(farms);
+    }
     public void FarmBlockAdd(List<GameObject> blocks)
     {
+        FarmBlocks.AddRange(blocks);
         Debug.Log(blocks.Count);
         List<GameObject> AddBlockRemains = new List<GameObject>(blocks);
         if (FarmBuildings.Count == 0) {

@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 1502565015787612319}
   m_Layer: 0
   m_Name: Market
-  m_TagString: Untagged
+  m_TagString: Building
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -127,6 +127,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   entrance: {fileID: 7017795809521131308}
+  fishingPoint: {fileID: 0}
 --- !u!1 &3718343366115092680
 GameObject:
   m_ObjectHideFlags: 0

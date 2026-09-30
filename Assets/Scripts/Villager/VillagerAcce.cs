@@ -15,7 +15,8 @@ public enum VillagerAcceType
     Fish,
     Lumber,
     Stone,
-    WateringCan
+    WateringCan,
+    Hoe
 };
 
 public class VillagerAcce : MonoBehaviour

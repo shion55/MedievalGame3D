@@ -65,7 +65,7 @@ public class WoodCutter : JobBase
         transform.rotation = Quaternion.Euler(0f, angle, 0f);
         ///ÉAÉjÉÅÅïïÄÅïâπê∫on
         VB.anim.Play(AnimType.Chop);
-        VA.AcceActive(VillagerAcceType.Axe);
+        VAC.AcceActive(VillagerAcceType.Axe);
        
 
         yield return new WaitForSeconds(produceTime);
@@ -78,13 +78,13 @@ public class WoodCutter : JobBase
         havingwoods++;
         VB.DepartToTarget(myJobBuilding, VillagerBase.GoState.GoCarry);
 
-        VA.AcceDisActive(VillagerAcceType.Axe);
-        VA.AcceActive(myMaterialAcce);
+        VAC.AcceDisActive(VillagerAcceType.Axe);
+        VAC.AcceActive(myMaterialAcce);
         VB.anim.Play(AnimType.Carry);
     }
     private void ArrCabin()
     {
-        VA.AcceDisActive(myMaterialAcce);
+        VAC.AcceDisActive(myMaterialAcce);
         if (havingwoods != 0)
         {
             AddBuildingStorage(1);
@@ -106,6 +106,6 @@ public class WoodCutter : JobBase
 
     public void PlayChopVoice()
     {
-        VB.PlayJobAudio(chopVoice);
+        VAU.PlayJobAudio(chopVoice);
     }
 }

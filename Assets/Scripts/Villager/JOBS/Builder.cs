@@ -154,15 +154,16 @@ public class Builder : JobBase
     {
         yield return new WaitForSeconds(takeTime);
         VB.MyRenderOff();
-        VA.AcceActive(VillagerAcceType.Wood);
+        VAC.AcceActive(VillagerAcceType.Wood);
         _state = State.GoingSite;
-        VB.DepartToTarget(_site, VillagerBase.GoState.GoCarry);//すぐもどる
+        ConstructionSite siteData =_site.GetComponent<ConstructionSite>();
+        VB.DepartToTarget(_site, VillagerBase.GoState.GoCarry, siteData.builderPosition);//すぐもどる
     }
     void BeginConstruction()
     {
         SetActivity(VillagerBase.ActivityState.Working);  //働いているので邪魔しないで
         // 手押し車モデルを消して作業アニメへ
-        VA.AcceDisActive(VillagerAcceType.Wood);
+        VAC.AcceDisActive(VillagerAcceType.Wood);
         _state = State.Building;               //   ← enum State に Building を追加
         VB.anim.Play(AnimType.Chop);
 
