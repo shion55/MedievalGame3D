@@ -13,16 +13,6 @@
 *.sln
 *.user
 *.userprefs
-# Models
-*.fbx
-*.obj
-*.blend
 
-# Textures / Images
-*.png
-*.jpg
-*.jpeg
-*.tga
-*.psd
 # Unity / Android build temporary files
 .utmp/
