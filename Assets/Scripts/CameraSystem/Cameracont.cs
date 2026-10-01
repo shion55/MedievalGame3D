@@ -67,6 +67,18 @@ public class Cameracont : MonoBehaviour
 
     //AudioListner用position
     public Transform audioListenerPosition;
+    [Header("Audio Listener")]
+    [SerializeField] private float minListenerDistance = 3f;
+    [SerializeField] private float maxListenerDistance = 30f;
+
+    [SerializeField, Range(0.005f, 0.05f)]
+    private float dragThresholdRatio = 0.015f;
+
+    [SerializeField]
+    private float dragSensitivity = 1f;
+
+    private Vector2 touchStartPos;
+    private bool touchStartedOverUI;
     void Start()
     {
         SetTPSMode(false);
@@ -86,63 +98,176 @@ public class Cameracont : MonoBehaviour
     }
     void MoveCameraSwipe()
     {
+        // =========================
+        // スマホ
+        // =========================
+        if (Input.touchCount > 0)
+        {
+            // ----- 2本指：ピンチズーム -----
+            if (Input.touchCount >= 2)
+            {
+                isDragging = false;
+
+                Touch t0 = Input.GetTouch(0);
+                Touch t1 = Input.GetTouch(1);
+
+                float currentDistance =
+                    Vector2.Distance(t0.position, t1.position);
+
+                if (t0.phase == TouchPhase.Began ||
+                    t1.phase == TouchPhase.Began)
+                {
+                    prevTouchDist = currentDistance;
+                }
+                else
+                {
+                    float distanceDelta =
+                        currentDistance - prevTouchDist;
+
+                    prevTouchDist = currentDistance;
+
+                    // 画面解像度に依存しないよう正規化
+                    float normalizedDelta =
+                        distanceDelta /
+                        Mathf.Max(1f, Screen.height);
+
+                    float zoomDelta =
+                        normalizedDelta *
+                        zoomSpeed *
+                        mainCamera.orthographicSize;
+
+                    Zoom(zoomDelta);
+                }
+
+                return;
+            }
+
+            // ----- 1本指：カメラ移動 -----
+            Touch touch = Input.GetTouch(0);
+
+            switch (touch.phase)
+            {
+                case TouchPhase.Began:
+                    touchStartPos = touch.position;
+                    lastTouchPos = touch.position;
+
+                    isDragging = false;
+
+                    touchStartedOverUI =
+                        EventSystem.current != null &&
+                        EventSystem.current.IsPointerOverGameObject(
+                            touch.fingerId
+                        );
+
+                    break;
+
+                case TouchPhase.Moved:
+
+                    if (touchStartedOverUI)
+                        break;
+
+                    float threshold =
+                        Screen.height * dragThresholdRatio;
+
+                    // 一定距離以上動いて初めてドラッグ扱い
+                    if (!isDragging)
+                    {
+                        if (Vector2.Distance(
+                                touchStartPos,
+                                touch.position
+                            ) >= threshold)
+                        {
+                            isDragging = true;
+
+                            // ドラッグ開始時にジャンプしないようにする
+                            lastTouchPos = touch.position;
+                        }
+
+                        break;
+                    }
+
+                    Vector2 delta =
+                        touch.position - lastTouchPos;
+
+                    MoveCamera(delta);
+
+                    lastTouchPos = touch.position;
+
+                    break;
+
+                case TouchPhase.Ended:
+                case TouchPhase.Canceled:
+                    isDragging = false;
+                    touchStartedOverUI = false;
+                    break;
+            }
+
+            // 重要：
+            // Touchを処理したフレームでは
+            // GetMouseButton系を実行しない
+            return;
+        }
+
+
+        // =========================
+        // PC
+        // =========================
+
         if (Input.GetMouseButtonDown(0))
         {
+            if (EventSystem.current != null &&
+                EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
             lastTouchPos = Input.mousePosition;
-            isDragging = true;
+            touchStartPos = Input.mousePosition;
+            isDragging = false;
         }
-        else if (Input.GetMouseButtonUp(0))
+
+        if (Input.GetMouseButton(0))
+        {
+            Vector2 currentPos = Input.mousePosition;
+
+            float threshold =
+                Screen.height * dragThresholdRatio;
+
+            if (!isDragging)
+            {
+                if (Vector2.Distance(
+                        touchStartPos,
+                        currentPos
+                    ) >= threshold)
+                {
+                    isDragging = true;
+                    lastTouchPos = currentPos;
+                }
+
+                return;
+            }
+
+            Vector2 delta =
+                currentPos - lastTouchPos;
+
+            MoveCamera(delta);
+
+            lastTouchPos = currentPos;
+        }
+
+        if (Input.GetMouseButtonUp(0))
         {
             isDragging = false;
         }
 
-        if (isDragging && Input.GetMouseButton(0))
-        {
-            Vector2 delta = (Vector2)Input.mousePosition - lastTouchPos;
-            if (delta.magnitude < 100f) // ←これ以上はたぶんバグ
-            {
-                MoveCamera(delta);
-            }
-            lastTouchPos = Input.mousePosition;
-        }
 
+        // マウスホイール
         float scroll =
-    Input.GetAxis("Mouse ScrollWheel");
+            Input.GetAxis("Mouse ScrollWheel");
 
         if (Mathf.Abs(scroll) > 0.01f)
         {
             Zoom(scroll * zoomSpeed);
-        }
-        if (Input.touchCount == 2)
-        {
-            Touch t0 = Input.GetTouch(0);
-            Touch t1 = Input.GetTouch(1);
-
-            // ２点間の距離
-            float curDist = Vector2.Distance(t0.position, t1.position);
-
-            if (t0.phase == TouchPhase.Began || t1.phase == TouchPhase.Began)
-            {
-                // ピンチ開始時の距離を記録
-                prevTouchDist = curDist;
-            }
-            else
-            {
-                // 距離差分を正規化してズーム量とする
-                float delta = (curDist - prevTouchDist) * zoomSpeed * Time.deltaTime;
-                prevTouchDist = curDist;
-
-                Zoom(delta);
-            }
-        }
-        // --- スマホ用 ---
-        if (Input.touchCount == 1)
-        {
-            Touch touch = Input.GetTouch(0);
-            if (touch.phase == TouchPhase.Moved)
-            {
-                MoveCamera(touch.deltaPosition);
-            }
         }
     }
     private void Zoom(float delta)
@@ -416,13 +541,55 @@ public class Cameracont : MonoBehaviour
 
     void MoveCamera(Vector2 delta)
     {
-        Vector3 move = new Vector3(-delta.x, 0, -delta.y) * moveSpeed * Time.deltaTime;
+        if (mainCamera == null)
+            return;
 
-        Vector3 newPos = transform.position + move;
+        // 画面1pixelがワールド上で何mに相当するか
+        float worldPerPixel =
+            (mainCamera.orthographicSize * 2f) /
+            Mathf.Max(1f, Screen.height);
 
-        // Clampをかける（XZ平面上のみ）
-        newPos.x = Mathf.Clamp(newPos.x, minCameraPos.x, maxCameraPos.x);
-        newPos.z = Mathf.Clamp(newPos.z, minCameraPos.y, maxCameraPos.y);
+        Vector3 forward =
+            mainCamera.transform.forward;
+
+        forward.y = 0f;
+        forward.Normalize();
+
+        Vector3 right =
+            mainCamera.transform.right;
+
+        right.y = 0f;
+        right.Normalize();
+
+
+        // 「地図を指で掴んで動かす」方向
+        Vector3 move =
+            (
+                -right * delta.x
+                - forward * delta.y
+            )
+            * worldPerPixel
+            * dragSensitivity;
+
+
+        Vector3 newPos =
+            transform.position + move;
+
+
+        newPos.x =
+            Mathf.Clamp(
+                newPos.x,
+                minCameraPos.x,
+                maxCameraPos.x
+            );
+
+        newPos.z =
+            Mathf.Clamp(
+                newPos.z,
+                minCameraPos.y,
+                maxCameraPos.y
+            );
+
 
         transform.position = newPos;
     }
@@ -463,19 +630,68 @@ public class Cameracont : MonoBehaviour
 
     private void UpdateAudioListenerPosition()
     {
+        if (audioListenerPosition == null ||
+            mainCamera == null)
+        {
+            return;
+        }
+
+        // 画面中央が指している地面を求める
         Ray ray = mainCamera.ViewportPointToRay(
             new Vector3(0.5f, 0.5f, 0f)
         );
 
-        Plane groundPlane = new Plane(
-            Vector3.up,
-            Vector3.zero
-        );
+        float groundY =
+            terrain != null
+                ? terrain.transform.position.y
+                : 0f;
 
-        if (groundPlane.Raycast(ray, out float distance))
+        Plane groundPlane =
+            new Plane(
+                Vector3.up,
+                new Vector3(0f, groundY, 0f)
+            );
+
+        if (!groundPlane.Raycast(ray, out float distance))
+            return;
+
+        Vector3 groundPoint =
+            ray.GetPoint(distance);
+
+        // Terrainの実際の高さ
+        if (terrain != null)
         {
-            audioListenerPosition.position =
-                ray.GetPoint(distance);
+            groundPoint.y =
+                terrain.SampleHeight(groundPoint)
+                + terrain.transform.position.y;
         }
+
+        // orthographicSizeを
+        // 0～1のズーム値へ変換
+        float zoomT =
+            Mathf.InverseLerp(
+                minSize,
+                maxSize,
+                mainCamera.orthographicSize
+            );
+
+        // ズームイン → 耳が近い
+        // ズームアウト → 耳が遠い
+        float listenerDistance =
+            Mathf.Lerp(
+                minListenerDistance,
+                maxListenerDistance,
+                zoomT
+            );
+
+        // カメラを見る方向の逆側へListenerを移動
+        audioListenerPosition.position =
+            groundPoint
+            - mainCamera.transform.forward
+            * listenerDistance;
+
+        // 音の左右方向もカメラに合わせる
+        audioListenerPosition.rotation =
+            mainCamera.transform.rotation;
     }
 }
